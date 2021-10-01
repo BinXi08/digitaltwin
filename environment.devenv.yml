@@ -1,0 +1,23 @@
+name: digitaltwin
+channels:
+  - conda-forge
+dependencies:
+  - python=3.7.5
+  - numpy
+  - pip
+  #- thermofun>=0.3.4
+  #- thermohubclient
+  - pandas=0.25.3
+  - jupyter
+  - xgems
+  - pip:
+    - matplotlib
+    - IPython
+    - voila
+    - py4j
+    - voila-vuetify
+    - bqplot 
+    - ipyvuetify
+    - scipy
+    - plotly
+#    - ipysheet
