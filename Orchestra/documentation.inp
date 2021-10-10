@@ -1,0 +1,22 @@
+// Example system according to description Diederik Jacques:
+// PRIMITIVE VARIANT – CaO-SiO2-H2O
+// Benchmark different geochemical models
+// Cement Composition
+// 100 grams of cement clinkers (Lothenbach et al., 2008)
+//	Gram		Mol
+// CaO	63 g		1.12345
+// SiO2	18.9 g		0.31456
+// Inert	18.1
+
+// Water cement Ratio
+// w/c 0.5 
+// Temperature
+// 25°C
+// Geochemical model
+// Thermodynamic database: CEMDATA18.1-16-01-2019-phaseVol.dat
+// Activity model: to be checked 
+// Model:
+// Phases
+//	Portlandite
+// Solid solution
+//	CSH: CSHQ-JenD, CSHQ-JenH, CSHQ-TobD, CSHQ-TobH

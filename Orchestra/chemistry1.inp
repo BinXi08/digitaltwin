@@ -1,0 +1,611 @@
+//*********  Version: 29 September 2021 20:51  *******
+@NrDigits: 12  // number of decimal places in reaction coefficients. 
+
+//********* The database file(s) *******
+// This section list the database files that are used by the interactive chemistry editor
+// The database file statement has NO effect on the calculations
+// Syntax for local files:                   @database: minteq.txt
+// Syntax for files on the internet:         @database: www.meeussen.nl/orchestra/minteqv4.txt
+
+@database: CEMDATA18.1_2021.txt
+@database: solidsolutions.txt
+//********* End of the database file(s) *******
+
+
+
+//********* The variables *******
+@Var: CLAY_kgkg 0.0  //   
+@Var: DFA_kgl 0.0  //   
+@Var: DHA_kgl 0.0  //   
+@Var: Goethite_kgkg 0.0  //   
+@Var: H+.logact 1.0  //  **
+@Var: H.logact 1.0  //   
+@GlobalVar: H2O.logact 0.0  //   
+@Var: HFO_kgkg 0.0  //   
+@GlobalVar: I 0.1  // 
+@Var: O.logact 1.0  //  **
+@Var: SFA_kgkg 0.0  //   
+@Var: SHA_kgkg 0.0  //   
+@Var: SL 1.0  //   
+@Var: T 298.15  //   
+@Var: density 1.0  //   
+@Var: e-.logact 1.0  //   
+@Var: gasvolume 1.0  //   
+@Var: pH 7.0  //   
+@Var: pe 7.0  //   
+@Var: porosity 1.0  //   
+@Var: saturation 1.0  //   
+@GlobalVar: totvolume 0.1  //   
+@Var: waterbalance 50.0  //   
+@Var: watervolume 1.0  //   
+//********* End of the variables *******
+
+
+//********* Extra text 1 *******
+
+@class: extra_text_1(){
+
+// some user defined calculations at the start of the chemistry calculation
+// in this case the saturation and porosity are both 1
+@Calc: (1,  "watervolume = porosity * totvolume * saturation")     // is total water volume per cell
+@Calc: (1,  "gasvolume   = porosity * (1-saturation)")             // is tot gas volume per liter water
+@Calc: (1,  "SL = ((1-porosity)*density) / (porosity*saturation)")
+
+// we add an equation to solve the total liquid water volume for the calculated waterbalance 
+// solve the total (water) volume for a given water balance in the system (expressed in ml water)
+@Calc: (5, "waterbalance = ({H2O.tot} + (0.5*{H+.tot}))/ 0.0556")
+//@Calc: (5, "waterbalance = ({H2O.tot} - ({O.tot}))/ 0.0556")
+@solve: unknown: (name:, totvolume,  delta:, 1e-6, type:, log, step: .1, min:, 1e-5, IIA:, true ) equation:(name:, waterbalance, tol:, 1e-4)
+
+}
+@extra_text_1()
+//********* End of extra text 1 *******
+
+//********* The phases *******
+@phase(tot)
+@phase(bulksolution)
+@phase(bulksolid)
+@phase(bulkss)
+@phase(LDH_ss)
+@phase(kg)
+@phase(liter)
+@link_phase(liter, tot, "watervolume")
+@link_phase(liter, kg, "1/SL")
+@phase(solution)
+@link_phase(solution, liter, "1")
+@phase(diss)
+@link_phase(diss, solution, "1")
+@link_phase(diss, bulksolution, "watervolume")
+@phase(colloid)
+@link_phase(colloid, solution, "1")
+@phase(DHA_part)
+@link_phase(DHA_part, colloid, "1")
+@phase(DFA_part)
+@link_phase(DFA_part, colloid, "1")
+@phase(solid)
+@link_phase(solid, liter, "1")
+@phase(min)
+@link_phase(min, solid, "1")
+@link_phase(min, bulksolid, "watervolume")
+@phase(ss)
+@link_phase(ss, bulkss, "watervolume")
+@link_phase(ss, min, "1")
+@phase(ads)
+@link_phase(ads, solid, "1")
+@phase(CLAY_part_l)
+@link_phase(CLAY_part_l, ads, "1")
+@phase(CLAY_part)
+@link_phase(CLAY_part, CLAY_part_l, "CLAY_kgkg*SL")
+@phase(HFO_part_l)
+@link_phase(HFO_part_l, ads, "1")
+@phase(HFO_part)
+@link_phase(HFO_part, HFO_part_l, "HFO_kgkg*SL")
+@phase(Goethite_part_l)
+@link_phase(Goethite_part_l, ads, "1")
+@phase(Goethite_part)
+@link_phase(Goethite_part, Goethite_part_l, "Goethite_kgkg*SL")
+@phase(SHA_part_l)
+@link_phase(SHA_part_l, ads, "1")
+@phase(HA_part)
+@link_phase(HA_part, DHA_part, "DHA_kgl")
+@link_phase(HA_part, SHA_part_l, "SHA_kgkg*SL")
+@phase(SFA_part_l)
+@link_phase(SFA_part_l, ads, "1")
+@phase(FA_part)
+@link_phase(FA_part, DFA_part, "DFA_kgl")
+@link_phase(FA_part, SFA_part_l, "SFA_kgkg*SL")
+@phase(gas_l)
+@link_phase(gas_l, liter, "1")
+@phase(gas)
+@link_phase(gas, gas_l, "(gasvolume/22.4)")
+@phase(CEM18_CSHQ_ss)
+//********* End of the phases *******
+
+//********* Extra text 2 **************
+@class: extra_text_2(){
+   @include: objects2021.txt
+
+@Class: species(name, charge, a, b)
+This version of species calculates its activity coefficient according to Truesdel method in PHREEQC
+{
+   // we add this species to the list of species
+   // so we can use this list to process all species
+   @append: allSpecies(){
+      @forEachSpecies(<name>, <charge>)
+   }
+
+/******* This part is added/ replaced relative to the Davies species
+   @Var: DielectricConstant 80
+   @Calc: (1, "DielectricConstant = -0.3366*T+179.15")
+
+   @Var: Truesdel_A 0.51
+   @Calc: (1, "Truesdel_A = 1.837*1e6*(DielectricConstant * T)^(-3/2)")
+
+   @Var: Truesdel_B 0.3281
+   @Calc: (1, "Truesdel_B = 50.3*(DielectricConstant * T)^(-1/2)")
+
+   @entity(<name>, "@aqphase()")
+   @Var: <name>.logf 0
+
+   @Calc:(1,"<name>.logf   =   ((Truesdel_A * <charge>^2 * sqrt(I)) / (1 + Truesdel_B * <a> * sqrt(I))) - (<b>*I)") 
+
+/*******
+
+   @Calc:(2,"<name>.con    = 10^({<name>.logact} + {<name>.logf}) ")
+   @Calc:(2,"<name>.@aqphase() = {<name>.con}") 
+
+   // add contribution of this species to total ionic strenght
+   @Calc:(2,"I.calc  = I.calc + ({<name>.con} * (0.5*<charge>*<charge>))")
+
+   // add contribution of this species to charge balance 
+   @Calc:(2,"chargebalance = chargebalance + ({<name>.con} * (<charge>))")
+
+   // add contribution of this species to sum of dissolved ions
+   @Calc:(2,"sumAqIons = sumAqIons + {<name>.con}")
+}
+
+
+// switching this on uses the ordinary davies equation instead of the version above
+//@Class: species(name, charge, a, b){
+//    @species(<name>, <charge>)
+//}
+
+}
+@extra_text_2()
+//********* End of extra text 2 *******
+
+@globalvar: I .1
+@davies()
+@calculate_water_activity()
+
+//********* The primary entities *******
+@balance_charge(pH)
+@solid_solution(CEM18_CSHQ_ss,ss)
+@primary_entity(CEM18_CSHQ_ss, 0.0)
+@entity(Ca, tot, 0 )
+@primary_entity(Ca, -9.0, tot, 1.0E-9)
+@Global: pH
+@Var: H+.logact  1 **
+@Calc:(1, "H+.logact = -pH")
+@species(H+, 1, 9, 0.064)
+@primary_entity(H+, pH, 7.0)
+@Global: H2O.logact
+@Var: O.logact  1 **
+@Calc:(1, "O.logact = H2O.logact")
+@entity(O, tot, 0 )
+@primary_entity(O, H2O.logact, 0.0)
+@entity(Si, tot, 0 )
+@primary_entity(Si, -9.0, tot, 1.0E-9)
+//****************************************
+//******************************
+
+//********* Extra text 2a **************
+
+@class: extra_text_2a(){
+ // Here is some space for extra code that will be used in the calculations but will not be changed by the GUI. 
+}
+@extra_text_2a()
+
+//********* The entities *******
+
+@species(Ca+2, 2)
+@logKreaction(Ca+2, 0.0, 1.0, Ca)
+@entity(O[-2], tot, 0 )
+@logKreaction(O[-2], 0.0, 1.0, O)
+@entity(H2O, liter, 55.6 )
+@logKreaction(H2O, 0.0, 1.0, O[-2])
+@species(SiO2, 0)
+@logKreaction(SiO2, 0.0, 1.0, Si)
+@entity(CSHQ_JenD, CEM18_CSHQ_ss, 1 )
+@logKreaction(CSHQ_JenD, "-1 * ((-15.591756 + 8609.739692 / @T() + 6.24251 * log10(@T())))", 1.0, CEM18_CSHQ_ss, 1.5, Ca+2, -3.0, H+, 4.0, H2O, 0.6667, SiO2)
+@entity(CSHQ_JenH, CEM18_CSHQ_ss, 1 )
+@logKreaction(CSHQ_JenH, "-1 * ((-17.10944 + 6470.553982 / @T() + 7.107847 * log10(@T())))", 1.0, CEM18_CSHQ_ss, 1.3333, Ca+2, -2.6666, H+, 3.5, H2O, 1.0, SiO2)
+@entity(CSHQ_TobD, CEM18_CSHQ_ss, 1 )
+@logKreaction(CSHQ_TobD, "-1 * ((-10.916344 + 3959.367696 / @T() + 4.563888 * log10(@T())))", 1.0, CEM18_CSHQ_ss, 0.833375, Ca+2, -1.66675, H+, 2.6668, H2O, 0.6667, SiO2)
+@entity(CSHQ_TobH, CEM18_CSHQ_ss, 1 )
+@logKreaction(CSHQ_TobH, "-1 * ((-12.519254 + 2163.381583 / @T() + 5.476331 * log10(@T())))", 1.0, CEM18_CSHQ_ss, 0.6667, Ca+2, -1.3334, H+, 2.1667, H2O, 1.0, SiO2)
+@species(CaSiO3, 0, 0, 0)
+@logKreaction(CaSiO3, "((-10.000639 + -2546.007503 / @T()))", 1.0, Ca+2, -2.0, H+, 1.0, H2O, 1.0, SiO2)
+@species(Ca[HSiO3]+, 1, 4, 0.064)
+@logKreaction(Ca[HSiO3]+, "((-20.400451 + -822.7361 / @T() + 5.880359 * log10(@T())))", 1.0, Ca+2, -1.0, H+, 1.0, H2O, 1.0, SiO2)
+@species(Ca[OH]+, 1, 4, 0.064)
+@logKreaction(Ca[OH]+, "((14.192136 + -4635.53095 / @T() + -4.617086 * log10(@T())))", 1.0, Ca+2, -1.0, H+, 1.0, H2O)
+@entity(H[+1], tot, 0 )
+@logKreaction(H[+1], -0.0, 1.0, H+)
+@entity(H, tot, 0 )
+@logKreaction(H, -0.0, 1.0, H[+1])
+@gas(H2O[g])
+@logKreaction(H2O[g], "-1 * ((-18.473651 + 2820.718831 / @T() + 4.244215 * log10(@T())))", 1.0, H2O)
+@species(HSiO3-, -1, 4, 0.064)
+@logKreaction(HSiO3-, "((67.706653 + -4741.842127 / @T() + -24.899348 * log10(@T())))", -1.0, H+, 1.0, H2O, 1.0, SiO2)
+@species(OH-, -1, 10.65, 0.064)
+@logKreaction(OH-, "((69.848379 + -6215.240028 / @T() + -25.461346 * log10(@T())))", -1.0, H+, 1.0, H2O)
+@mineral(Portlandite[s])
+@logKreaction(Portlandite[s], "-1 * ((-11.299363 + 7301.394065 / @T() + 3.883957 * log10(@T())))", 1.0, Ca+2, -2.0, H+, 2.0, H2O)
+
+@species(Si4O10-4, -4, 4, 0.064)
+@logKreaction(Si4O10-4, "((-1.22E-4 + -10822.837161 / @T()))", -4.0, H+, 2.0, H2O, 4.0, SiO2)
+@species(SiO3-2, -2, 4, 0.064)
+@logKreaction(SiO3-2, "((-10.000668 + -3917.496558 / @T()))", -2.0, H+, 1.0, H2O, 1.0, SiO2)
+//********* Extra text 3 **************
+@class: extra_text_3(){
+ // Here you can write ORCHESTRA code that will be used in the calculations, but will not be interpreted by the GUI.  
+}
+@extra_text_3()
+//********* End of extra text 3 *******
+
+//********* Extra text 4 **************
+@class: extra_text_4(){
+ // Here you can write ORCHESTRA code that will be used in the calculations, but will not be interpreted by the GUI.  
+}
+@extra_text_4()
+//********* End of extra text 4 *******
+
+//********* End of Adsorption Models *******
+//********* Extra text 5 **************
+@class: extra_text_5(){
+ // Here you can write ORCHESTRA code that will be used in the calculations, but will not be interpreted by the GUI.  
+@synonym:  anc_molkg   H+.kg
+}
+@extra_text_5()
+//********* End of extra text 5 *******
+
+//********* add @userfriendlyformat: to get output of reactions in user friendly format *******
+@class: PHREEQCOutput(){
+----------------------------Description of solution--------------------------------------------------
+                            Cellnumber = @Node_ID()
+                                    pH = @pH()
+                                    pe = @pe()
+                    Activity of water  = @evaluate:("10^@H2O.logact()")
+                       Ionic strength  = @I()
+           Total number of iterations  = @tot_nr_iter()
+
+----------------------------Distribution of aqueous species---------------------------------------------
+
+     Species            concentration (Mol/l)        Log Activity              Activity             log gamma   
+ CEM18_CSHQ_ss       @CEM18_CSHQ_ss.diss
+ Ca                  @Ca.diss()         
+ H+                  @H+.diss()         
+     H+                   @H+.con()  @H+.logact()@evaluate:("10^@H+.logact()")    @evaluate:("-@H+.logf()")
+ O                   @O.diss()          
+ Si                  @Si.diss()         
+
+----------------------------Description  of mineral phases --------------------------------------------------
+     Mineral           concentration (Mol/l)           SI  
+ CEM18_CSHQ_ss       @CEM18_CSHQ_ss.min()    
+ Ca                  @Ca.min()               
+     C2S[s]               @C2S[s].con()  @evaluate:("if(@C2S[s].logact()^2>1e-20,@C2S[s].logact(),0) ") 
+     C3S[s]               @C3S[s].con()  @evaluate:("if(@C3S[s].logact()^2>1e-20,@C3S[s].logact(),0) ") 
+     CSH3T-T2C[s]         @CSH3T-T2C[s].con()  @evaluate:("if(@CSH3T-T2C[s].logact()^2>1e-20,@CSH3T-T2C[s].logact(),0) ") 
+     CSH3T-T5C[s]         @CSH3T-T5C[s].con()  @evaluate:("if(@CSH3T-T5C[s].logact()^2>1e-20,@CSH3T-T5C[s].logact(),0) ") 
+     CSH3T-TobH[s]        @CSH3T-TobH[s].con()  @evaluate:("if(@CSH3T-TobH[s].logact()^2>1e-20,@CSH3T-TobH[s].logact(),0) ") 
+     CSHQ-JenD[s]         @CSHQ-JenD[s].con()  @evaluate:("if(@CSHQ-JenD[s].logact()^2>1e-20,@CSHQ-JenD[s].logact(),0) ") 
+     CSHQ-JenH[s]         @CSHQ-JenH[s].con()  @evaluate:("if(@CSHQ-JenH[s].logact()^2>1e-20,@CSHQ-JenH[s].logact(),0) ") 
+     CSHQ-TobD[s]         @CSHQ-TobD[s].con()  @evaluate:("if(@CSHQ-TobD[s].logact()^2>1e-20,@CSHQ-TobD[s].logact(),0) ") 
+     CSHQ-TobH[s]         @CSHQ-TobH[s].con()  @evaluate:("if(@CSHQ-TobH[s].logact()^2>1e-20,@CSHQ-TobH[s].logact(),0) ") 
+     ECSH1-TobCa[s]       @ECSH1-TobCa[s].con()  @evaluate:("if(@ECSH1-TobCa[s].logact()^2>1e-20,@ECSH1-TobCa[s].logact(),0) ") 
+     ECSH2-JenCa[s]       @ECSH2-JenCa[s].con()  @evaluate:("if(@ECSH2-JenCa[s].logact()^2>1e-20,@ECSH2-JenCa[s].logact(),0) ") 
+     ECSH2-TobCa[s]       @ECSH2-TobCa[s].con()  @evaluate:("if(@ECSH2-TobCa[s].logact()^2>1e-20,@ECSH2-TobCa[s].logact(),0) ") 
+     Jennite[s]           @Jennite[s].con()  @evaluate:("if(@Jennite[s].logact()^2>1e-20,@Jennite[s].logact(),0) ") 
+     Lim[s]               @Lim[s].con()  @evaluate:("if(@Lim[s].logact()^2>1e-20,@Lim[s].logact(),0) ") 
+     T2C-CNASHss[s]       @T2C-CNASHss[s].con()  @evaluate:("if(@T2C-CNASHss[s].logact()^2>1e-20,@T2C-CNASHss[s].logact(),0) ") 
+     T5C-CNASHss[s]       @T5C-CNASHss[s].con()  @evaluate:("if(@T5C-CNASHss[s].logact()^2>1e-20,@T5C-CNASHss[s].logact(),0) ") 
+     Tob-II[s]            @Tob-II[s].con()  @evaluate:("if(@Tob-II[s].logact()^2>1e-20,@Tob-II[s].logact(),0) ") 
+     Tob-I[s]             @Tob-I[s].con()  @evaluate:("if(@Tob-I[s].logact()^2>1e-20,@Tob-I[s].logact(),0) ") 
+     TobH-CNASHss[s]      @TobH-CNASHss[s].con()  @evaluate:("if(@TobH-CNASHss[s].logact()^2>1e-20,@TobH-CNASHss[s].logact(),0) ") 
+ H+                  @H+.min()               
+     C2S[s]               @C2S[s].con()  @evaluate:("if(@C2S[s].logact()^2>1e-20,@C2S[s].logact(),0) ") 
+     C3S[s]               @C3S[s].con()  @evaluate:("if(@C3S[s].logact()^2>1e-20,@C3S[s].logact(),0) ") 
+     CSH3T-T2C[s]         @CSH3T-T2C[s].con()  @evaluate:("if(@CSH3T-T2C[s].logact()^2>1e-20,@CSH3T-T2C[s].logact(),0) ") 
+     CSH3T-T5C[s]         @CSH3T-T5C[s].con()  @evaluate:("if(@CSH3T-T5C[s].logact()^2>1e-20,@CSH3T-T5C[s].logact(),0) ") 
+     CSH3T-TobH[s]        @CSH3T-TobH[s].con()  @evaluate:("if(@CSH3T-TobH[s].logact()^2>1e-20,@CSH3T-TobH[s].logact(),0) ") 
+     CSHQ-JenD[s]         @CSHQ-JenD[s].con()  @evaluate:("if(@CSHQ-JenD[s].logact()^2>1e-20,@CSHQ-JenD[s].logact(),0) ") 
+     CSHQ-JenH[s]         @CSHQ-JenH[s].con()  @evaluate:("if(@CSHQ-JenH[s].logact()^2>1e-20,@CSHQ-JenH[s].logact(),0) ") 
+     CSHQ-TobD[s]         @CSHQ-TobD[s].con()  @evaluate:("if(@CSHQ-TobD[s].logact()^2>1e-20,@CSHQ-TobD[s].logact(),0) ") 
+     CSHQ-TobH[s]         @CSHQ-TobH[s].con()  @evaluate:("if(@CSHQ-TobH[s].logact()^2>1e-20,@CSHQ-TobH[s].logact(),0) ") 
+     ECSH1-TobCa[s]       @ECSH1-TobCa[s].con()  @evaluate:("if(@ECSH1-TobCa[s].logact()^2>1e-20,@ECSH1-TobCa[s].logact(),0) ") 
+     ECSH2-JenCa[s]       @ECSH2-JenCa[s].con()  @evaluate:("if(@ECSH2-JenCa[s].logact()^2>1e-20,@ECSH2-JenCa[s].logact(),0) ") 
+     ECSH2-TobCa[s]       @ECSH2-TobCa[s].con()  @evaluate:("if(@ECSH2-TobCa[s].logact()^2>1e-20,@ECSH2-TobCa[s].logact(),0) ") 
+     Jennite[s]           @Jennite[s].con()  @evaluate:("if(@Jennite[s].logact()^2>1e-20,@Jennite[s].logact(),0) ") 
+     Lim[s]               @Lim[s].con()  @evaluate:("if(@Lim[s].logact()^2>1e-20,@Lim[s].logact(),0) ") 
+     T2C-CNASHss[s]       @T2C-CNASHss[s].con()  @evaluate:("if(@T2C-CNASHss[s].logact()^2>1e-20,@T2C-CNASHss[s].logact(),0) ") 
+     T5C-CNASHss[s]       @T5C-CNASHss[s].con()  @evaluate:("if(@T5C-CNASHss[s].logact()^2>1e-20,@T5C-CNASHss[s].logact(),0) ") 
+     Tob-II[s]            @Tob-II[s].con()  @evaluate:("if(@Tob-II[s].logact()^2>1e-20,@Tob-II[s].logact(),0) ") 
+     Tob-I[s]             @Tob-I[s].con()  @evaluate:("if(@Tob-I[s].logact()^2>1e-20,@Tob-I[s].logact(),0) ") 
+     TobH-CNASHss[s]      @TobH-CNASHss[s].con()  @evaluate:("if(@TobH-CNASHss[s].logact()^2>1e-20,@TobH-CNASHss[s].logact(),0) ") 
+ O                   @O.min()                
+     C2S[s]               @C2S[s].con()  @evaluate:("if(@C2S[s].logact()^2>1e-20,@C2S[s].logact(),0) ") 
+     C3S[s]               @C3S[s].con()  @evaluate:("if(@C3S[s].logact()^2>1e-20,@C3S[s].logact(),0) ") 
+     CSH3T-T2C[s]         @CSH3T-T2C[s].con()  @evaluate:("if(@CSH3T-T2C[s].logact()^2>1e-20,@CSH3T-T2C[s].logact(),0) ") 
+     CSH3T-T5C[s]         @CSH3T-T5C[s].con()  @evaluate:("if(@CSH3T-T5C[s].logact()^2>1e-20,@CSH3T-T5C[s].logact(),0) ") 
+     CSH3T-TobH[s]        @CSH3T-TobH[s].con()  @evaluate:("if(@CSH3T-TobH[s].logact()^2>1e-20,@CSH3T-TobH[s].logact(),0) ") 
+     CSHQ-JenD[s]         @CSHQ-JenD[s].con()  @evaluate:("if(@CSHQ-JenD[s].logact()^2>1e-20,@CSHQ-JenD[s].logact(),0) ") 
+     CSHQ-JenH[s]         @CSHQ-JenH[s].con()  @evaluate:("if(@CSHQ-JenH[s].logact()^2>1e-20,@CSHQ-JenH[s].logact(),0) ") 
+     CSHQ-TobD[s]         @CSHQ-TobD[s].con()  @evaluate:("if(@CSHQ-TobD[s].logact()^2>1e-20,@CSHQ-TobD[s].logact(),0) ") 
+     CSHQ-TobH[s]         @CSHQ-TobH[s].con()  @evaluate:("if(@CSHQ-TobH[s].logact()^2>1e-20,@CSHQ-TobH[s].logact(),0) ") 
+     ECSH1-SH[s]          @ECSH1-SH[s].con()  @evaluate:("if(@ECSH1-SH[s].logact()^2>1e-20,@ECSH1-SH[s].logact(),0) ") 
+     ECSH1-TobCa[s]       @ECSH1-TobCa[s].con()  @evaluate:("if(@ECSH1-TobCa[s].logact()^2>1e-20,@ECSH1-TobCa[s].logact(),0) ") 
+     ECSH2-JenCa[s]       @ECSH2-JenCa[s].con()  @evaluate:("if(@ECSH2-JenCa[s].logact()^2>1e-20,@ECSH2-JenCa[s].logact(),0) ") 
+     ECSH2-TobCa[s]       @ECSH2-TobCa[s].con()  @evaluate:("if(@ECSH2-TobCa[s].logact()^2>1e-20,@ECSH2-TobCa[s].logact(),0) ") 
+     Jennite[s]           @Jennite[s].con()  @evaluate:("if(@Jennite[s].logact()^2>1e-20,@Jennite[s].logact(),0) ") 
+     Lim[s]               @Lim[s].con()  @evaluate:("if(@Lim[s].logact()^2>1e-20,@Lim[s].logact(),0) ") 
+     T2C-CNASHss[s]       @T2C-CNASHss[s].con()  @evaluate:("if(@T2C-CNASHss[s].logact()^2>1e-20,@T2C-CNASHss[s].logact(),0) ") 
+     T5C-CNASHss[s]       @T5C-CNASHss[s].con()  @evaluate:("if(@T5C-CNASHss[s].logact()^2>1e-20,@T5C-CNASHss[s].logact(),0) ") 
+     Tob-II[s]            @Tob-II[s].con()  @evaluate:("if(@Tob-II[s].logact()^2>1e-20,@Tob-II[s].logact(),0) ") 
+     Tob-I[s]             @Tob-I[s].con()  @evaluate:("if(@Tob-I[s].logact()^2>1e-20,@Tob-I[s].logact(),0) ") 
+     TobH-CNASHss[s]      @TobH-CNASHss[s].con()  @evaluate:("if(@TobH-CNASHss[s].logact()^2>1e-20,@TobH-CNASHss[s].logact(),0) ") 
+ Si                  @Si.min()               
+     Amor-Sl[s]           @Amor-Sl[s].con()  @evaluate:("if(@Amor-Sl[s].logact()^2>1e-20,@Amor-Sl[s].logact(),0) ") 
+     C2S[s]               @C2S[s].con()  @evaluate:("if(@C2S[s].logact()^2>1e-20,@C2S[s].logact(),0) ") 
+     C3S[s]               @C3S[s].con()  @evaluate:("if(@C3S[s].logact()^2>1e-20,@C3S[s].logact(),0) ") 
+     CSH3T-T2C[s]         @CSH3T-T2C[s].con()  @evaluate:("if(@CSH3T-T2C[s].logact()^2>1e-20,@CSH3T-T2C[s].logact(),0) ") 
+     CSH3T-T5C[s]         @CSH3T-T5C[s].con()  @evaluate:("if(@CSH3T-T5C[s].logact()^2>1e-20,@CSH3T-T5C[s].logact(),0) ") 
+     CSH3T-TobH[s]        @CSH3T-TobH[s].con()  @evaluate:("if(@CSH3T-TobH[s].logact()^2>1e-20,@CSH3T-TobH[s].logact(),0) ") 
+     CSHQ-JenD[s]         @CSHQ-JenD[s].con()  @evaluate:("if(@CSHQ-JenD[s].logact()^2>1e-20,@CSHQ-JenD[s].logact(),0) ") 
+     CSHQ-JenH[s]         @CSHQ-JenH[s].con()  @evaluate:("if(@CSHQ-JenH[s].logact()^2>1e-20,@CSHQ-JenH[s].logact(),0) ") 
+     CSHQ-TobD[s]         @CSHQ-TobD[s].con()  @evaluate:("if(@CSHQ-TobD[s].logact()^2>1e-20,@CSHQ-TobD[s].logact(),0) ") 
+     CSHQ-TobH[s]         @CSHQ-TobH[s].con()  @evaluate:("if(@CSHQ-TobH[s].logact()^2>1e-20,@CSHQ-TobH[s].logact(),0) ") 
+     ECSH1-SH[s]          @ECSH1-SH[s].con()  @evaluate:("if(@ECSH1-SH[s].logact()^2>1e-20,@ECSH1-SH[s].logact(),0) ") 
+     ECSH1-TobCa[s]       @ECSH1-TobCa[s].con()  @evaluate:("if(@ECSH1-TobCa[s].logact()^2>1e-20,@ECSH1-TobCa[s].logact(),0) ") 
+     ECSH2-JenCa[s]       @ECSH2-JenCa[s].con()  @evaluate:("if(@ECSH2-JenCa[s].logact()^2>1e-20,@ECSH2-JenCa[s].logact(),0) ") 
+     ECSH2-TobCa[s]       @ECSH2-TobCa[s].con()  @evaluate:("if(@ECSH2-TobCa[s].logact()^2>1e-20,@ECSH2-TobCa[s].logact(),0) ") 
+     Jennite[s]           @Jennite[s].con()  @evaluate:("if(@Jennite[s].logact()^2>1e-20,@Jennite[s].logact(),0) ") 
+     Qtz[s]               @Qtz[s].con()  @evaluate:("if(@Qtz[s].logact()^2>1e-20,@Qtz[s].logact(),0) ") 
+     T2C-CNASHss[s]       @T2C-CNASHss[s].con()  @evaluate:("if(@T2C-CNASHss[s].logact()^2>1e-20,@T2C-CNASHss[s].logact(),0) ") 
+     T5C-CNASHss[s]       @T5C-CNASHss[s].con()  @evaluate:("if(@T5C-CNASHss[s].logact()^2>1e-20,@T5C-CNASHss[s].logact(),0) ") 
+     Tob-II[s]            @Tob-II[s].con()  @evaluate:("if(@Tob-II[s].logact()^2>1e-20,@Tob-II[s].logact(),0) ") 
+     Tob-I[s]             @Tob-I[s].con()  @evaluate:("if(@Tob-I[s].logact()^2>1e-20,@Tob-I[s].logact(),0) ") 
+     TobH-CNASHss[s]      @TobH-CNASHss[s].con()  @evaluate:("if(@TobH-CNASHss[s].logact()^2>1e-20,@TobH-CNASHss[s].logact(),0) ") 
+
+---------------------------- Description of CEM18_CNASH_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_CNA
+ Ca                       @Ca.CEM18_CNASH_ss()    
+ H+                       @H+.CEM18_CNASH_ss()    
+ O                        @O.CEM18_CNASH_ss()     
+ Si                       @Si.CEM18_CNASH_ss()    
+
+---------------------------- Description of CEM18_CSH3T_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_CSH
+ Ca                       @Ca.CEM18_CSH3T_ss()    
+ H+                       @H+.CEM18_CSH3T_ss()    
+ O                        @O.CEM18_CSH3T_ss()     
+ Si                       @Si.CEM18_CSH3T_ss()    
+
+---------------------------- Description of CEM18_CSHQ_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_CSH
+ Ca                       @Ca.CEM18_CSHQ_ss()     
+ H+                       @H+.CEM18_CSHQ_ss()     
+ O                        @O.CEM18_CSHQ_ss()      
+ Si                       @Si.CEM18_CSHQ_ss()     
+
+---------------------------- Description of CEM18_CSH_II_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_CSH
+ Ca                       @Ca.CEM18_CSH_II_ss()   
+ H+                       @H+.CEM18_CSH_II_ss()   
+ O                        @O.CEM18_CSH_II_ss()    
+ Si                       @Si.CEM18_CSH_II_ss()   
+
+---------------------------- Description of CEM18_ECSH1_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_ECS
+ Ca                       @Ca.CEM18_ECSH1_ss()    
+ H+                       @H+.CEM18_ECSH1_ss()    
+ O                        @O.CEM18_ECSH1_ss()     
+ Si                       @Si.CEM18_ECSH1_ss()    
+
+---------------------------- Description of CEM18_ECSH2_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_ECS
+ Ca                       @Ca.CEM18_ECSH2_ss()    
+ H+                       @H+.CEM18_ECSH2_ss()    
+ O                        @O.CEM18_ECSH2_ss()     
+ Si                       @Si.CEM18_ECSH2_ss()    
+
+---------------------------- Description of CLAY_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CLAY_part
+ Ca                       @Ca.CLAY_part()         
+ H+                       @H+.CLAY_part()         
+ O                        @O.CLAY_part()          
+ Si                       @Si.CLAY_part()         
+
+---------------------------- Description of CLAY_part_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CLAY_part
+ Ca                       @Ca.CLAY_part_l()       
+ H+                       @H+.CLAY_part_l()       
+ O                        @O.CLAY_part_l()        
+ Si                       @Si.CLAY_part_l()       
+
+---------------------------- Description of DFA_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.DFA_part(
+ Ca                       @Ca.DFA_part()          
+ H+                       @H+.DFA_part()          
+ O                        @O.DFA_part()           
+ Si                       @Si.DFA_part()          
+
+---------------------------- Description of DHA_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.DHA_part(
+ Ca                       @Ca.DHA_part()          
+ H+                       @H+.DHA_part()          
+ O                        @O.DHA_part()           
+ Si                       @Si.DHA_part()          
+
+---------------------------- Description of FA_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.FA_part()
+ Ca                       @Ca.FA_part()           
+ H+                       @H+.FA_part()           
+ O                        @O.FA_part()            
+ Si                       @Si.FA_part()           
+
+---------------------------- Description of Goethite_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.Goethite_
+ Ca                       @Ca.Goethite_part()     
+ H+                       @H+.Goethite_part()     
+ O                        @O.Goethite_part()      
+ Si                       @Si.Goethite_part()     
+
+---------------------------- Description of Goethite_part_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.Goethite_
+ Ca                       @Ca.Goethite_part_l()   
+ H+                       @H+.Goethite_part_l()   
+ O                        @O.Goethite_part_l()    
+ Si                       @Si.Goethite_part_l()   
+
+---------------------------- Description of HA_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.HA_part()
+ Ca                       @Ca.HA_part()           
+ H+                       @H+.HA_part()           
+ O                        @O.HA_part()            
+ Si                       @Si.HA_part()           
+
+---------------------------- Description of HFO_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.HFO_part(
+ Ca                       @Ca.HFO_part()          
+ H+                       @H+.HFO_part()          
+ O                        @O.HFO_part()           
+ Si                       @Si.HFO_part()          
+
+---------------------------- Description of HFO_part_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.HFO_part_
+ Ca                       @Ca.HFO_part_l()        
+ H+                       @H+.HFO_part_l()        
+ O                        @O.HFO_part_l()         
+ Si                       @Si.HFO_part_l()        
+
+---------------------------- Description of LDH_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.LDH_ss() 
+ Ca                       @Ca.LDH_ss()            
+ H+                       @H+.LDH_ss()            
+ O                        @O.LDH_ss()             
+ Si                       @Si.LDH_ss()            
+
+---------------------------- Description of SFA_part_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.SFA_part_
+ Ca                       @Ca.SFA_part_l()        
+ H+                       @H+.SFA_part_l()        
+ O                        @O.SFA_part_l()         
+ Si                       @Si.SFA_part_l()        
+
+---------------------------- Description of SHA_part_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.SHA_part_
+ Ca                       @Ca.SHA_part_l()        
+ H+                       @H+.SHA_part_l()        
+ O                        @O.SHA_part_l()         
+ Si                       @Si.SHA_part_l()        
+
+---------------------------- Description of ads phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.ads()    
+ Ca                       @Ca.ads()               
+ H+                       @H+.ads()               
+ O                        @O.ads()                
+ Si                       @Si.ads()               
+
+---------------------------- Description of bulksolid phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.bulksolid
+ Ca                       @Ca.bulksolid()         
+ H+                       @H+.bulksolid()         
+ O                        @O.bulksolid()          
+ Si                       @Si.bulksolid()         
+
+---------------------------- Description of bulksolution phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.bulksolut
+ Ca                       @Ca.bulksolution()      
+ H+                       @H+.bulksolution()      
+ O                        @O.bulksolution()       
+ Si                       @Si.bulksolution()      
+
+---------------------------- Description of bulkss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.bulkss() 
+ Ca                       @Ca.bulkss()            
+ H+                       @H+.bulkss()            
+ O                        @O.bulkss()             
+ Si                       @Si.bulkss()            
+
+---------------------------- Description of colloid phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.colloid()
+ Ca                       @Ca.colloid()           
+ H+                       @H+.colloid()           
+ O                        @O.colloid()            
+ Si                       @Si.colloid()           
+
+---------------------------- Description of gas phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.gas()    
+ Ca                       @Ca.gas()               
+ H+                       @H+.gas()               
+ O                        @O.gas()                
+ Si                       @Si.gas()               
+
+---------------------------- Description of gas_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.gas_l()  
+ Ca                       @Ca.gas_l()             
+ H+                       @H+.gas_l()             
+ O                        @O.gas_l()              
+ Si                       @Si.gas_l()             
+
+---------------------------- Description of kg phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.kg()     
+ Ca                       @Ca.kg()                
+ H+                       @H+.kg()                
+ O                        @O.kg()                 
+ Si                       @Si.kg()                
+
+---------------------------- Description of liter phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.liter()  
+ Ca                       @Ca.liter()             
+ H+                       @H+.liter()             
+ O                        @O.liter()              
+ Si                       @Si.liter()             
+
+---------------------------- Description of solid phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.solid()  
+ Ca                       @Ca.solid()             
+ H+                       @H+.solid()             
+ O                        @O.solid()              
+ Si                       @Si.solid()             
+
+---------------------------- Description of solution phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.solution(
+ Ca                       @Ca.solution()          
+ H+                       @H+.solution()          
+ O                        @O.solution()           
+ Si                       @Si.solution()          
+
+---------------------------- Description of ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.ss()     
+ Ca                       @Ca.ss()                
+ H+                       @H+.ss()                
+ O                        @O.ss()                 
+ Si                       @Si.ss()                
+
+---------------------------- Description of temporary phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.temporary
+ Ca                       @Ca.temporary()         
+ H+                       @H+.temporary()         
+ O                        @O.temporary()          
+ Si                       @Si.temporary()         
+
+---------------------------- Description of tot phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.tot()    
+ Ca                       @Ca.tot()               
+ H+                       @H+.tot()               
+ O                        @O.tot()                
+ Si                       @Si.tot()               
+}
+@class: outputline(){Var: Node_ID pH pe I H2O.logact tot_nr_iter CEM18_CSHQ_ss.diss Ca.diss H+.diss H+.con H+.logact H+.logf O.diss Si.diss CEM18_CSHQ_ss.min Ca.min C2S[s].con C2S[s].si C2S[s].logact C3S[s].con C3S[s].si C3S[s].logact CSH3T-T2C[s].con CSH3T-T2C[s].si CSH3T-T2C[s].logact CSH3T-T5C[s].con CSH3T-T5C[s].si CSH3T-T5C[s].logact CSH3T-TobH[s].con CSH3T-TobH[s].si CSH3T-TobH[s].logact CSHQ-JenD[s].con CSHQ-JenD[s].si CSHQ-JenD[s].logact CSHQ-JenH[s].con CSHQ-JenH[s].si CSHQ-JenH[s].logact CSHQ-TobD[s].con CSHQ-TobD[s].si CSHQ-TobD[s].logact CSHQ-TobH[s].con CSHQ-TobH[s].si CSHQ-TobH[s].logact ECSH1-TobCa[s].con ECSH1-TobCa[s].si ECSH1-TobCa[s].logact ECSH2-JenCa[s].con ECSH2-JenCa[s].si ECSH2-JenCa[s].logact ECSH2-TobCa[s].con ECSH2-TobCa[s].si ECSH2-TobCa[s].logact Jennite[s].con Jennite[s].si Jennite[s].logact Lim[s].con Lim[s].si Lim[s].logact T2C-CNASHss[s].con T2C-CNASHss[s].si T2C-CNASHss[s].logact T5C-CNASHss[s].con T5C-CNASHss[s].si T5C-CNASHss[s].logact Tob-II[s].con Tob-II[s].si Tob-II[s].logact Tob-I[s].con Tob-I[s].si Tob-I[s].logact TobH-CNASHss[s].con TobH-CNASHss[s].si TobH-CNASHss[s].logact H+.min C2S[s].con C2S[s].si C2S[s].logact C3S[s].con C3S[s].si C3S[s].logact CSH3T-T2C[s].con CSH3T-T2C[s].si CSH3T-T2C[s].logact CSH3T-T5C[s].con CSH3T-T5C[s].si CSH3T-T5C[s].logact CSH3T-TobH[s].con CSH3T-TobH[s].si CSH3T-TobH[s].logact CSHQ-JenD[s].con CSHQ-JenD[s].si CSHQ-JenD[s].logact CSHQ-JenH[s].con CSHQ-JenH[s].si CSHQ-JenH[s].logact CSHQ-TobD[s].con CSHQ-TobD[s].si CSHQ-TobD[s].logact CSHQ-TobH[s].con CSHQ-TobH[s].si CSHQ-TobH[s].logact ECSH1-TobCa[s].con ECSH1-TobCa[s].si ECSH1-TobCa[s].logact ECSH2-JenCa[s].con ECSH2-JenCa[s].si ECSH2-JenCa[s].logact ECSH2-TobCa[s].con ECSH2-TobCa[s].si ECSH2-TobCa[s].logact Jennite[s].con Jennite[s].si Jennite[s].logact Lim[s].con Lim[s].si Lim[s].logact T2C-CNASHss[s].con T2C-CNASHss[s].si T2C-CNASHss[s].logact T5C-CNASHss[s].con T5C-CNASHss[s].si T5C-CNASHss[s].logact Tob-II[s].con Tob-II[s].si Tob-II[s].logact Tob-I[s].con Tob-I[s].si Tob-I[s].logact TobH-CNASHss[s].con TobH-CNASHss[s].si TobH-CNASHss[s].logact O.min C2S[s].con C2S[s].si C2S[s].logact C3S[s].con C3S[s].si C3S[s].logact CSH3T-T2C[s].con CSH3T-T2C[s].si CSH3T-T2C[s].logact CSH3T-T5C[s].con CSH3T-T5C[s].si CSH3T-T5C[s].logact CSH3T-TobH[s].con CSH3T-TobH[s].si CSH3T-TobH[s].logact CSHQ-JenD[s].con CSHQ-JenD[s].si CSHQ-JenD[s].logact CSHQ-JenH[s].con CSHQ-JenH[s].si CSHQ-JenH[s].logact CSHQ-TobD[s].con CSHQ-TobD[s].si CSHQ-TobD[s].logact CSHQ-TobH[s].con CSHQ-TobH[s].si CSHQ-TobH[s].logact ECSH1-SH[s].con ECSH1-SH[s].si ECSH1-SH[s].logact ECSH1-TobCa[s].con ECSH1-TobCa[s].si ECSH1-TobCa[s].logact ECSH2-JenCa[s].con ECSH2-JenCa[s].si ECSH2-JenCa[s].logact ECSH2-TobCa[s].con ECSH2-TobCa[s].si ECSH2-TobCa[s].logact Jennite[s].con Jennite[s].si Jennite[s].logact Lim[s].con Lim[s].si Lim[s].logact T2C-CNASHss[s].con T2C-CNASHss[s].si T2C-CNASHss[s].logact T5C-CNASHss[s].con T5C-CNASHss[s].si T5C-CNASHss[s].logact Tob-II[s].con Tob-II[s].si Tob-II[s].logact Tob-I[s].con Tob-I[s].si Tob-I[s].logact TobH-CNASHss[s].con TobH-CNASHss[s].si TobH-CNASHss[s].logact Si.min Amor-Sl[s].con Amor-Sl[s].si Amor-Sl[s].logact C2S[s].con C2S[s].si C2S[s].logact C3S[s].con C3S[s].si C3S[s].logact CSH3T-T2C[s].con CSH3T-T2C[s].si CSH3T-T2C[s].logact CSH3T-T5C[s].con CSH3T-T5C[s].si CSH3T-T5C[s].logact CSH3T-TobH[s].con CSH3T-TobH[s].si CSH3T-TobH[s].logact CSHQ-JenD[s].con CSHQ-JenD[s].si CSHQ-JenD[s].logact CSHQ-JenH[s].con CSHQ-JenH[s].si CSHQ-JenH[s].logact CSHQ-TobD[s].con CSHQ-TobD[s].si CSHQ-TobD[s].logact CSHQ-TobH[s].con CSHQ-TobH[s].si CSHQ-TobH[s].logact ECSH1-SH[s].con ECSH1-SH[s].si ECSH1-SH[s].logact ECSH1-TobCa[s].con ECSH1-TobCa[s].si ECSH1-TobCa[s].logact ECSH2-JenCa[s].con ECSH2-JenCa[s].si ECSH2-JenCa[s].logact ECSH2-TobCa[s].con ECSH2-TobCa[s].si ECSH2-TobCa[s].logact Jennite[s].con Jennite[s].si Jennite[s].logact Qtz[s].con Qtz[s].si Qtz[s].logact T2C-CNASHss[s].con T2C-CNASHss[s].si T2C-CNASHss[s].logact T5C-CNASHss[s].con T5C-CNASHss[s].si T5C-CNASHss[s].logact Tob-II[s].con Tob-II[s].si Tob-II[s].logact Tob-I[s].con Tob-I[s].si Tob-I[s].logact TobH-CNASHss[s].con TobH-CNASHss[s].si TobH-CNASHss[s].logact CEM18_CSHQ_ss.CEM18_CNASH_ss Ca.CEM18_CNASH_ss H+.CEM18_CNASH_ss O.CEM18_CNASH_ss Si.CEM18_CNASH_ss CEM18_CSHQ_ss.CEM18_CSH3T_ss Ca.CEM18_CSH3T_ss H+.CEM18_CSH3T_ss O.CEM18_CSH3T_ss Si.CEM18_CSH3T_ss CEM18_CSHQ_ss.CEM18_CSHQ_ss Ca.CEM18_CSHQ_ss H+.CEM18_CSHQ_ss O.CEM18_CSHQ_ss Si.CEM18_CSHQ_ss CEM18_CSHQ_ss.CEM18_CSH_II_ss Ca.CEM18_CSH_II_ss H+.CEM18_CSH_II_ss O.CEM18_CSH_II_ss Si.CEM18_CSH_II_ss CEM18_CSHQ_ss.CEM18_ECSH1_ss Ca.CEM18_ECSH1_ss H+.CEM18_ECSH1_ss O.CEM18_ECSH1_ss Si.CEM18_ECSH1_ss CEM18_CSHQ_ss.CEM18_ECSH2_ss Ca.CEM18_ECSH2_ss H+.CEM18_ECSH2_ss O.CEM18_ECSH2_ss Si.CEM18_ECSH2_ss CEM18_CSHQ_ss.CLAY_part Ca.CLAY_part H+.CLAY_part O.CLAY_part Si.CLAY_part CEM18_CSHQ_ss.CLAY_part_l Ca.CLAY_part_l H+.CLAY_part_l O.CLAY_part_l Si.CLAY_part_l CEM18_CSHQ_ss.DFA_part Ca.DFA_part H+.DFA_part O.DFA_part Si.DFA_part CEM18_CSHQ_ss.DHA_part Ca.DHA_part H+.DHA_part O.DHA_part Si.DHA_part CEM18_CSHQ_ss.FA_part Ca.FA_part H+.FA_part O.FA_part Si.FA_part CEM18_CSHQ_ss.Goethite_part Ca.Goethite_part H+.Goethite_part O.Goethite_part Si.Goethite_part CEM18_CSHQ_ss.Goethite_part_l Ca.Goethite_part_l H+.Goethite_part_l O.Goethite_part_l Si.Goethite_part_l CEM18_CSHQ_ss.HA_part Ca.HA_part H+.HA_part O.HA_part Si.HA_part CEM18_CSHQ_ss.HFO_part Ca.HFO_part H+.HFO_part O.HFO_part Si.HFO_part CEM18_CSHQ_ss.HFO_part_l Ca.HFO_part_l H+.HFO_part_l O.HFO_part_l Si.HFO_part_l CEM18_CSHQ_ss.LDH_ss Ca.LDH_ss H+.LDH_ss O.LDH_ss Si.LDH_ss CEM18_CSHQ_ss.SFA_part_l Ca.SFA_part_l H+.SFA_part_l O.SFA_part_l Si.SFA_part_l CEM18_CSHQ_ss.SHA_part_l Ca.SHA_part_l H+.SHA_part_l O.SHA_part_l Si.SHA_part_l CEM18_CSHQ_ss.ads Ca.ads H+.ads O.ads Si.ads CEM18_CSHQ_ss.bulksolid Ca.bulksolid H+.bulksolid O.bulksolid Si.bulksolid CEM18_CSHQ_ss.bulksolution Ca.bulksolution H+.bulksolution O.bulksolution Si.bulksolution CEM18_CSHQ_ss.bulkss Ca.bulkss H+.bulkss O.bulkss Si.bulkss CEM18_CSHQ_ss.colloid Ca.colloid H+.colloid O.colloid Si.colloid CEM18_CSHQ_ss.gas Ca.gas H+.gas O.gas Si.gas CEM18_CSHQ_ss.gas_l Ca.gas_l H+.gas_l O.gas_l Si.gas_l CEM18_CSHQ_ss.kg Ca.kg H+.kg O.kg Si.kg CEM18_CSHQ_ss.liter Ca.liter H+.liter O.liter Si.liter CEM18_CSHQ_ss.solid Ca.solid H+.solid O.solid Si.solid CEM18_CSHQ_ss.solution Ca.solution H+.solution O.solution Si.solution CEM18_CSHQ_ss.ss Ca.ss H+.ss O.ss Si.ss CEM18_CSHQ_ss.temporary Ca.temporary H+.temporary O.temporary Si.temporary CEM18_CSHQ_ss.tot Ca.tot H+.tot O.tot Si.tot }

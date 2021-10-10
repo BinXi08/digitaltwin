@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Composer>
+   <!--**** The predominance settings! ******-->
+   <title>Ca</title>
+   <synonym>Ca</synonym>
+   <fontsize>1.0</fontsize>
+   <X-Axis>
+      <variable>Ca.tot</variable>
+      <min>0.0</min>
+      <max>0.005</max>
+      <scientificformat>true</scientificformat>
+      <nrdecimals>2</nrdecimals>
+      <steps>400</steps>
+      <minortics>2</minortics>
+      <majortics>5</majortics>
+   </X-Axis>
+   <Y-Axis>
+      <variable>Si.tot</variable>
+      <min>0.0</min>
+      <max>0.005</max>
+      <scientificformat>true</scientificformat>
+      <nrdecimals>2</nrdecimals>
+      <steps>400</steps>
+      <minortics>2</minortics>
+      <majortics>5</majortics>
+   </Y-Axis>
+   <datafile>userdata.dat</datafile>
+   <area colour="-1" factor="1" formationreaction="" variable="H2.liter.con"/>
+   <area colour="-1" factor="1" formationreaction="" variable="O2.liter.con"/>
+   <area colour="8563350" factor="1.5" formationreaction="@logKreaction(CSHQ_JenD, &quot;-1 * ((-15.591756 + 8609.739692 / @T() + 6.24251 * log10(@T())))&quot;, 1.0, CEM18_CSHQ_ss, 1.5, Ca+2, -3.0, H+, 4.0, H2O, 0.6667, SiO2)" variable="CSHQ_JenD.liter.con"/>
+   <area colour="8563350" factor="1.3333" formationreaction="@logKreaction(CSHQ_JenH, &quot;-1 * ((-17.10944 + 6470.553982 / @T() + 7.107847 * log10(@T())))&quot;, 1.0, CEM18_CSHQ_ss, 1.3333, Ca+2, -2.6666, H+, 3.5, H2O, 1.0, SiO2)" variable="CSHQ_JenH.liter.con"/>
+   <area colour="8563350" factor="0.833375" formationreaction="@logKreaction(CSHQ_TobD, &quot;-1 * ((-10.916344 + 3959.367696 / @T() + 4.563888 * log10(@T())))&quot;, 1.0, CEM18_CSHQ_ss, 0.833375, Ca+2, -1.66675, H+, 2.6668, H2O, 0.6667, SiO2)" variable="CSHQ_TobD.liter.con"/>
+   <area colour="8563350" factor="0.6667" formationreaction="@logKreaction(CSHQ_TobH, &quot;-1 * ((-12.519254 + 2163.381583 / @T() + 5.476331 * log10(@T())))&quot;, 1.0, CEM18_CSHQ_ss, 0.6667, Ca+2, -1.3334, H+, 2.1667, H2O, 1.0, SiO2)" variable="CSHQ_TobH.liter.con"/>
+   <area colour="14474440" factor="1.0" formationreaction="@logKreaction(Ca+2, 0.0, 1.0, Ca)" variable="Ca+2.liter.con"/>
+   <area colour="14474440" factor="1.0" formationreaction="@logKreaction(CaSiO3, &quot;((-10.000639 + -2546.007503 / @T()))&quot;, 1.0, Ca+2, -2.0, H+, 1.0, H2O, 1.0, SiO2)" variable="CaSiO3.liter.con"/>
+   <area colour="14474440" factor="1.0" formationreaction="@logKreaction(Ca[HSiO3]+, &quot;((-20.400451 + -822.7361 / @T() + 5.880359 * log10(@T())))&quot;, 1.0, Ca+2, -1.0, H+, 1.0, H2O, 1.0, SiO2)" variable="Ca[HSiO3]+.liter.con"/>
+   <area colour="14474440" factor="1.0" formationreaction="@logKreaction(Ca[OH]+, &quot;((14.192136 + -4635.53095 / @T() + -4.617086 * log10(@T())))&quot;, 1.0, Ca+2, -1.0, H+, 1.0, H2O)" variable="Ca[OH]+.liter.con"/>
+   <area colour="8563350" factor="1.0" formationreaction="@logKreaction(Portlandite[s], &quot;-1 * ((-11.299363 + 7301.394065 / @T() + 3.883957 * log10(@T())))&quot;, 1.0, Ca+2, -2.0, H+, 2.0, H2O)" variable="Portlandite[s].liter.con"/>
+   <area colour="8563350" factor="1.0" formationreaction="" variable="Ca.liter.con"/>
+</Composer>

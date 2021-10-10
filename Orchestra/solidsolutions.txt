@@ -1,0 +1,117 @@
+//**** Solid solutions
+
+//** solid solution
+@solid_solution(CEM18_CSH_II_ss, min)
+
+@entity(Jennite, CEM18_CSH_II_ss, 1)
+@logKreaction(Jennite, " -1 * (-19.396078 + 0.0 * @T() + 8669.561341 / @T() + 7.93557 * log10(@T()) ",1, CEM18_CSH_II_ss, -3.333334, H+, 1.666667, Ca+2, 3.766667, H2O, 1.0, SiO2)
+
+
+@entity(Tob_II, CEM18_CSH_II_ss, 1)
+@logKreaction(Tob_II," -1 * (-13.918819 + 0.0 * @T() + 3071.259317 / @T() + 5.96621 * log10(@T()) ",1, CEM18_CSH_II_ss, -1.666666, H+, 0.833333, Ca+2, 2.166666, H2O, 1.0, SiO2)
+
+
+//** solid solution
+@solid_solution(CEM18_ECSH1_ss, min)
+
+@entity(ECSH1_KSH, CEM18_ECSH1_ss, 1)
+@logKreaction(ECSH1_KSH,  " -1 * (-5.730562 + 0.0 * @T() + 1108.807169 / @T() + 3.035639 * log10(@T())  ", 1,  CEM18_ECSH1_ss,   -0.5, H+, 0.7, H2O, 0.2, SiO2, 0.5, K+)
+
+@entity(ECSH1_NaSH, CEM18_ECSH1_ss, 1)
+@logKreaction(ECSH1_NaSH,  " -1 * (-12.608734 + 0.0 * @T() + 1575.198378 / @T() + 5.146974 * log10(@T())  ", 1,  CEM18_ECSH1_ss,   -0.5, H+, 0.5, Na+, 0.7, H2O, 0.2, SiO2)
+
+@entity(ECSH1_SH, CEM18_ECSH1_ss, 1)
+@logKreaction(ECSH1_SH,  " -1 * (0.0 + 0.0 * @T() + -775.067607 / @T() + 0.0 * log10(@T())  ",        1,  CEM18_ECSH1_ss,    1.0, H2O, 1.0, SiO2)
+
+@entity(ECSH1_TobCa, CEM18_ECSH1_ss, 1)
+@logKreaction(ECSH1_TobCa,  " -1 * (-13.776918 + 0.0 * @T() + 3023.19863 / @T() + 5.923868 * log10(@T())  ",        1,  CEM18_ECSH1_ss,    -1.6666, H+, 0.8333, Ca+2, 2.6666, H2O, 1.0, SiO2)
+
+@entity(ECSH1_SrSH, CEM18_ECSH1_ss, 1)
+@logKreaction(ECSH1_SrSH,  " -1 * (-14.8975 + 0.0 * @T() + 4225.657132 / @T() + 6.516963 * log10(@T()) ",        1,  CEM18_ECSH1_ss,    -2.0, H+, 1.0, Sr+2, 3.0, H2O, 1.0, SiO2)
+
+
+//** solid solution
+@solid_solution(CEM18_ECSH2_ss, min)
+
+@entity(ECSH2_JenCa, CEM18_ECSH2_ss, 1)
+@logKreaction(ECSH2_JenCa,  " -1 * (-22.977998 + 0.0 * @T() + 5250.037507 / @T() + 9.284551 * log10(@T()) ", 1,  CEM18_ECSH2_ss,  -2.00004, H+, 1.00002, Ca+2, 2.60004, H2O, 0.6, SiO2)
+
+@entity(ECSH2_KSH, CEM18_ECSH2_ss, 1)
+@logKreaction(ECSH2_KSH,  " -1 * (-5.730562 + 0.0 * @T() + 1257.985538 / @T() + 3.035639 * log10(@T()) ", 1,  CEM18_ECSH2_ss, -0.5, H+, 0.7, H2O, 0.2, SiO2, 0.5, K+)
+
+@entity(ECSH2_NaSH, CEM18_ECSH2_ss, 1)
+@logKreaction(ECSH2_NaSH,  " -1 * (-12.608734 + 0.0 * @T() + 1724.011114 / @T() + 5.146974 * log10(@T()) ", 1,  CEM18_ECSH2_ss, -0.5, H+, 0.5, Na+, 0.7, H2O, 0.2, SiO2)
+
+@entity(ECSH2_SrSH, CEM18_ECSH2_ss, 1)
+@logKreaction(ECSH2_SrSH,  " -1 * (-14.8975 + 0.0 * @T() + 4463.945549 / @T() + 6.516963 * log10(@T()) ",1,  CEM18_ECSH2_ss, -2.0, H+, 1.0, Sr+2, 3.0, H2O, 1.0, SiO2)
+
+@entity(ECSH2_TobCa, CEM18_ECSH2_ss, 1)
+@logKreaction(ECSH2_TobCa,  " -1 * (-13.776918 + 0.0 * @T() + 3023.19863 / @T() + 5.923868 * log10(@T()) ",1,  CEM18_ECSH2_ss, -1.6666, H+, 0.8333, Ca+2, 2.6666, H2O, 1.0, SiO2)
+
+
+//** solid solution
+@solid_solution(CEM18_CSHQ_ss, min)
+
+@entity(CSHQ_JenD, CEM18_CSHQ_ss, 1)
+@logKreaction(CSHQ_JenD,  " -1 * (-15.591756 + 0.0 * @T() + 8609.739692 / @T() + 6.24251 * log10(@T()) ", 1,  CEM18_CSHQ_ss,  -3.0, H+, 1.5, Ca+2, 4.0, H2O, 0.6667, SiO2)
+
+@entity(CSHQ_JenH, CEM18_CSHQ_ss, 1)
+@logKreaction(CSHQ_JenH,  " -1 * (-17.10944 + 0.0 * @T() + 6470.553982 / @T() + 7.107847 * log10(@T()) ",1.0,  CEM18_CSHQ_ss,  -2.6666, H+, 1.3333, Ca+2, 3.5, H2O, 1.0, SiO2)
+
+@entity(CSHQ_TobD, CEM18_CSHQ_ss, 1)
+@logKreaction(CSHQ_TobD,  " -1 * (-10.916344 + 0.0 * @T() + 3959.367696 / @T() + 4.563888 * log10(@T()) ", 1,  CEM18_CSHQ_ss,  -1.66675, H+, 0.833375, Ca+2, 2.6668, H2O, 0.6667, SiO2)
+
+@entity(CSHQ_TobH, CEM18_CSHQ_ss, 1)
+@logKreaction(CSHQ_TobH,  " -1 * (-12.519254 + 0.0 * @T() + 2163.381583 / @T() + 5.476331 * log10(@T()) ",1.0,  CEM18_CSHQ_ss,  -1.3334, H+, 0.6667, Ca+2, 2.1667, H2O, 1.0, SiO2)
+
+
+//** solid solution
+@solid_solution(CEM18_CSH3T_ss, min)
+
+@entity(CSH3T_TobH,CEM18_CSH3T_ss,1)
+@logKreaction(CSH3T_TobH,  " -1 * (-18.821451 + 0.0 * @T() + 3282.489718 / @T() + 8.22098 * log10(@T()) ", 1 , CEM18_CSH3T_ss,  -2.0, H+, 1.0, Ca+2, 3.5, H2O, 1.5, SiO2)
+
+@entity(CSH3T_T5C,CEM18_CSH3T_ss,1)
+@logKreaction(CSH3T_T5C,  " -1 * (-18.519024 + 0.0 * @T() + 5127.78826 / @T() + 7.864154 * log10(@T()) ", 1, CEM18_CSH3T_ss,  -2.5, H+, 1.25, Ca+2, 3.75, H2O, 1.25, SiO2)
+
+@entity(CSH3T_T2C,CEM18_CSH3T_ss,1)
+@logKreaction(CSH3T_T2C,  " -1 * (-18.242686 + 0.0 * @T() + 7428.082891 / @T() + 7.517428 * log10(@T()) ",1.0, CEM18_CSH3T_ss,  -3.0, H+, 1.5, Ca+2, 4.0, H2O, 1.0, SiO2)
+
+
+//** solid solution
+@solid_solution(CEM18_CNASH_ss, min)
+
+@entity(TobH_CNASHss, CEM18_CNASH_ss, 1)
+@logKreaction(TobH_CNASHss,  " -1 * (-18.816693 + 0.0 * @T() + 3362.507631 / @T() + 8.219057 * log10(@T()) ", 1, CEM18_CNASH_ss,  -2.0, H+, 1.0, Ca+2, 3.5, H2O, 1.5, SiO2)
+
+
+@entity(T2C_CNASHss, CEM18_CNASH_ss, 1)
+@logKreaction(T2C_CNASHss,  " -1 * (-18.253184 + 0.0 * @T() + 7517.243302 / @T() + 7.519834 * log10(@T()) ", 1, CEM18_CNASH_ss,   -3.0, H+, 1.5, Ca+2, 4.0, H2O, 1.0, SiO2)
+
+@entity(T5C_CNASHss, CEM18_CNASH_ss, 1)
+@logKreaction(T5C_CNASHss,  " -1 * (-18.534936 + 0.0 * @T() + 5220.492792 / @T() + 7.869445 * log10(@T()) ", 1, CEM18_CNASH_ss,   -2.5, H+, 1.25, Ca+2, 3.75, H2O, 1.25, SiO2)
+
+
+@entity(INFCA, CEM18_CNASH_ss, 1)
+@logKreaction(INFCA,  " -1 * (-4.743157 + 0.0 * @T() + 2835.081302 / @T() + 1.693048 * log10(@T()) ", 1, CEM18_CNASH_ss,   -1.6875, H+, 1.0, Ca+2, 0.3125, AlO2-, 2.5, H2O, 1.1875, SiO2)
+
+@entity(INFCN, CEM18_CNASH_ss, 1)
+@logKreaction(INFCN,  " -1 * (-20.845546 + 0.0 * @T() + 6107.503138 / @T() + 7.727791 * log10(@T()) ", 1, CEM18_CNASH_ss,   -2.625, H+, 1.0, Ca+2, 0.625, Na+, 2.5, H2O, 1.5, SiO2)
+
+@entity(INFCNA, CEM18_CNASH_ss, 1)
+@logKreaction(INFCNA,  " -1 * (-14.774576 + 0.0 * @T() + 5861.4569 / @T() + 4.990089 * log10(@T()) ",1.0, CEM18_CNASH_ss,   -2.375, H+, 0.3125, AlO2-, 1.0, Ca+2, 0.6875, Na+, 2.5, H2O, 1.1875, SiO2)
+
+
+@entity(5CA, CEM18_CNASH_ss, 1)
+@logKreaction(5CA,  " -1 * (-8.681198 + 0.0 * @T() + 5225.70552 / @T() + 2.847338 * log10(@T()) ",1.0, CEM18_CNASH_ss,   -2.25, H+, 1.25, Ca+2, 0.25, AlO2-, 2.75, H2O, 1.0, SiO2)
+
+
+@entity(5CNA, CEM18_CNASH_ss, 1)
+@logKreaction(5CNA,  " -1 * (-15.798737 + 0.0 * @T() + 7769.891839 / @T() + 5.245569 * log10(@T())  ",1.0, CEM18_CNASH_ss,  -2.75, H+, 1.25, Ca+2, 0.5, Na+, 0.25, AlO2-, 2.75, H2O, 1.0, SiO2)
+
+
+
+
+
+
+
