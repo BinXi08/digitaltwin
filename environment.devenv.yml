@@ -10,7 +10,6 @@ dependencies:
   - pandas=0.25.3
   - jupyter
   - xgems
-  - ipywidgets=7.3.0
   - pip:
     - matplotlib
     - IPython
