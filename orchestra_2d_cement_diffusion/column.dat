@@ -1,0 +1,11 @@
+@include: parameters.txt
+
+//**** Static Variables
+Static: J               0  
+Static:	dt		0
+Static:	time		0
+Static:	time_years      0
+Static:	time_hours      0																													
+Static:	time_days       0
+
+Static: integrity   1

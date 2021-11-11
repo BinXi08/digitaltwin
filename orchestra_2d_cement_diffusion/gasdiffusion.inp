@@ -1,0 +1,56 @@
+
+
+@Class: diffuse (name, component) 
+
+This object is used for diffusion of a solute driven by its concentration gradient according to Fick's law. 
+It uses the concentrations in both cells, the distance between the cells (dx) in meter, and the surface area between the cells (A) in m2.
+Surface area is corrected for (assumed linearly dependent on) porosity.
+
+
+{  @globalVar: 1.<name>.diss       0
+   @Var: 2.<name>.diss       0
+   @globalVar: 1.<name>.d          0
+   @Var: 2.<name>.d          0
+   @Var: 1.tortuosity 1
+   @Var: 2.tortuosity 1
+   @globalVar: 1.<name>.D 2e-10  // default value
+
+   //*** Calculate concentration gradient in (mol/m3)/m
+   //dc=1000(C2-C1)/dx
+   @Var: <name>.dcdx 0
+   @Var: 2.dx      .01
+   @Var: 1.dx      .01
+   @Calc:(1, "<name>.dcdx = 1000*  ((1.A+2.A)/2) * ({2.<name>.diss} - {1.<name>.diss}) / (1.dx*1.tortuosity  +  2.dx * 2.tortuosity)  )")
+
+// Calculate the transported amount in mol/s
+// J= -D*dC*A 
+   @Var: <name>.J  	0
+   @Var: 1.A       	0
+   @Var: 2.A       	0
+   @Var: 1.porosity     0
+   @Var: 2.porosity     0
+
+// Assume linear relationship between porosity and contact area
+
+   @Calc:(1, "<name>.J = {<name>.dcdx} * -{1.<name>.D} ")
+
+// Adapt the delta masses with the transported amount
+   @Calc:(1, "1.<name>.d = {1.<name>.d} - {<name>.J}")
+   @Calc:(1, "2.<name>.d = {2.<name>.d} + {<name>.J}")
+}
+
+
+// Here we diffuse only CO2
+@diffuse(CO2[g], CO2[g])
+
+
+
+
+
+
+
+
+
+
+
+

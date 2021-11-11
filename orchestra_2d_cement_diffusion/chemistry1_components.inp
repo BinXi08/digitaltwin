@@ -1,0 +1,75 @@
+@component(CEM18_CSHQ_ss)
+@component(CO2[g])
+@component(Ca+2)
+@component(H+)
+@component(H2O)
+@component(O2)
+@component(SiO2)
+
+//**** *************************************************************
+//The list of components that is used for automatic timestepping.
+//*****************************************************************
+@dtcomponent(CO2[g])
+@dtcomponent(Ca+2)
+@dtcomponent(O2)
+@dtcomponent(SiO2)
+//*****************************************************************
+
+
+//*****************************************************************
+//The list of components for multicomponent diffusion.
+//*****************************************************************
+@mc_component(CEM18_CSHQ_ss, 0)
+@mc_component(CO2[g], 0)
+@mc_component(Ca+2, 2)
+@mc_component(H+, 1)
+@mc_component(O2, 0)
+@mc_component(SiO2, 0)
+//*****************************************************************
+
+
+//*****************************************************************
+//The list of aqueous species
+//*****************************************************************
+@ion(Ca+2, 2)
+@ion(H+, 1)
+@ion(H2O, 0)
+@ion(O2, 0)
+@ion(SiO2, 0)
+@ion(CH4, 0)
+@ion(CO2, 0)
+@ion(CO3-2, -2)
+@ion(CaCO3, 0)
+@ion(CaSiO3, 0)
+@ion(Ca[HCO3]+, 1)
+@ion(Ca[HSiO3]+, 1)
+@ion(Ca[OH]+, 1)
+@ion(H2, 0)
+@ion(HCO3-, -1)
+@ion(HSiO3-, -1)
+@ion(OH-, -1)
+@ion(Si4O10-4, -4)
+@ion(SiO3-2, -2)
+@ion(e-, -1)
+//*****************************************************************
+
+@reaction(CH4)
+@reaction(CO2)
+@reaction(CO3-2)
+@reaction(CSHQ_JenD)
+@reaction(CSHQ_JenH)
+@reaction(CSHQ_TobD)
+@reaction(CSHQ_TobH)
+@reaction(CaCO3)
+@reaction(CaSiO3)
+@reaction(Ca[HCO3]+)
+@reaction(Ca[HSiO3]+)
+@reaction(Ca[OH]+)
+@reaction(H2)
+@reaction(HCO3-)
+@reaction(HSiO3-)
+@reaction(OH-)
+@reaction(Portlandite)
+@reaction(Si4O10-4)
+@reaction(SiO3-2)
+@reaction(e-)

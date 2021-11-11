@@ -1,0 +1,6 @@
+// Here we can evaluate the integrity of the system based on selected physico chemical parameters
+// the output is an integrity value, input any relevant parameter in this cell
+
+@globalvar: integrity 1
+@globalvar: pH  7
+@Calc: (1, "integrity = min(integrity, if(pH>12, 1, 1-((12-pH)/7)))")

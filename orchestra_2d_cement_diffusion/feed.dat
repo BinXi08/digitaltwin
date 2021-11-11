@@ -1,0 +1,9 @@
+@include: parameters.txt
+
+Var:     dt      	J
+Default: 1             5e-3
+               
+Sweep: @nrtimesteps()
+   Swept: dt @timestep() @timestep() lin    
+}
+

@@ -1,0 +1,42 @@
+@Class: update_mass(name) 
+Updates the mass of a component in dynamic systems (transport or kinetics). 
+It is normally used within the file update_mass.inp.
+This version is adapted to set the total amount of a substance at a low value when refresh == 1
+<br> Hans Meeussen
+{  @Var: <name>.tot		0
+   @globalvar: <name>.d		0
+   @Var: dt       			1
+
+   // Add the mass change <name>.d(mol/s) multiplied by the time step dt(s) 
+   // to the total amount in the cell and reset name.d to zero.
+   @Calc:(1, "<name>.tot = {<name>.tot} + {<name>.d} * dt")
+
+ 
+
+   @Calc:(1, "<name>.d = 0")
+}
+
+@class: component(name){
+   @update_mass(<name>)
+}
+
+@Var: max_dt 0
+
+@Calc:(1, "max_dt = 1e80")
+
+@include: chemistry1_components.inp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,23 @@
+ 
+// This calculator is called once every timestep.
+// Only static variables (defined as such in column.dat) should be used here.
+Var: dt   0
+Var: time 0
+Var: time_years 0
+Var: time_days  0
+Var: time_hours 0
+
+@Calc:(1,"time = time + dt")
+@Calc:(1,"time_years = time/(60*60*24*365)")
+@Calc:(1,"time_hours = time/(60*60)")
+@Calc:(1,"time_days  = time/(60*60*24)")
+
+
+
+
+
+
+
+
+
+

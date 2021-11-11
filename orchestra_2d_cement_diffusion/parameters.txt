@@ -1,0 +1,46 @@
+// This central file contains the input parameter definitions that are used in different input files
+// 
+
+@class: totaltime(){8760000} //hours
+@class: timestep() {18000}  //secs
+@class: nrtimesteps(){@evaluate:("@totaltime()*3600/@timestep()")}
+
+// composition example 
+//@class: Si_tot(){3.146}                     // mol/l pore solution
+//@class: Ca_tot(){11.98}                     // mol/l pore solution
+//@Class: H_tot(){@evaluate:("-2*@Ca_tot()")} // calculate amount of protons required for neutral solution (can also be done by charge balancing intitial conditions)
+//@Class: CO2_tot(){1e-2}                     // external CO2 concentration. We could also set fixed partial gas pressure here
+
+//@class: porosity(){0.5}
+
+
+
+//**** define chemical parameters for 400 cells, used in initial_solid_composition.dat
+@class: chemical_cell_parameters(){
+
+// first we define the composition of cell 0 (boundary condition)
+// the volume of this cell is not relevant
+Var:    depth    A       dx    totvolume      porosity      pH      SiO2.liter      Ca+2.liter     H+.liter    O2.liter  X  Y   CO2[g].liter
+Data:    0       1e-4      0        1              1           5        1e-9         1e-9          -2e-9        1e-6      0  0    1e-2
+ 
+
+// these lines define contents of cells 1-400 of 2d grid
+Var:    depth    A         dx    totvolume      porosity      pH      SiO2.liter      Ca+2.liter      H+.liter	O2.liter  X  Y   CO2[g].liter
+Default: 1       1e-4     .005      .001          0.5        12.47     3.146          11.98              0        1e-6         0 0    1e-8
+   
+Sweep: 20
+   Swept: X 0 1 lin
+
+   Sweep: 20
+      Swept: Y 0 1 lin
+   }
+}
+}
+	
+
+
+
+
+
+
+

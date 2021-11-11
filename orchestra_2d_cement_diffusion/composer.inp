@@ -1,0 +1,28 @@
+// Composer settings. 
+Font:  13
+HSize: 1777
+VSize: 1280
+HPos:  576
+VPos:  27
+ProxyHost: blister
+ProxyPort: 8080
+Intropage:  none
+Concertfile: concert.xml
+
+// The Composer will allow to edit the files listed here.
+// Changes in this file are effective after refreshing or restarting the composer.
+//    <Title>     <Tab>       <Filename>
+
+File: Description 	null 	description.inp
+File: parameters 	null 	parameters.txt
+File: initial_solid_composition 	null 	initial_solid_composition.dat
+CHEMFile: chemistry1 	null 	chemistry1.inp
+CHEMFile: chemistry2 	null 	chemistry2.inp
+File: diffusion 	null 	diffusion.inp
+File: gasdiffusion 	null 	gasdiffusion.inp
+File: concert 	null 	concert.xml
+File: feed 	null 	feed.dat
+File: column 	null 	column.dat
+File: outputprofile 	null 	output_profile.dat
+File: integrity_evaluation 	null 	evaluate_integrity.inp
+File: integrity_data 	null 	integrity.dat

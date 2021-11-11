@@ -1,0 +1,573 @@
+//*********  Version: 04 November 2021 9:03  *******
+@NrDigits: 12  // number of decimal places in reaction coefficients. 
+ //@rewriteReactions:   //indicates that reactions are rewritten in terms of primary entities. 
+
+//********* The database file(s) *******
+// This section list the database files that are used by the interactive chemistry editor
+// The database file statement has NO effect on the calculations
+// Syntax for local files:                   @database: minteq.txt
+// Syntax for files on the internet:         @database: www.meeussen.nl/orchestra/minteqv4.txt
+
+@database: cem18_25.txt
+//********* End of the database file(s) *******
+
+
+
+//********* The variables *******
+@Var: CLAY_kgkg 0.0  //   
+@GlobalVar: Ca+2.diss 0.0  //   
+@Var: DFA_kgl 0.0  //   
+@Var: DHA_kgl 0.0  //   
+@Var: Goethite_kgkg 0.0  //   
+@Var: H+.logact 1.0  //  **
+@GlobalVar: H2O.logact 0.0  //   
+@Var: HFO_kgkg 0.0  //   
+@GlobalVar: I 0.1  // 
+@Var: SFA_kgkg 0.0  //   
+@Var: SHA_kgkg 0.0  //   
+@Var: SL 1.0  //   
+@GlobalVar: SiO2.diss 0.0  //   
+@Var: density 1.0  //   
+@Var: e-.logact 1.0  //   
+@Var: gasvolume 1.0  //   
+@Var: pH 7.0  //   
+@Var: pe 7.0  //   
+@Var: porosity 1.0  //   
+@Var: saturation 1.0  //   
+@Var: tolerance 1.0E-8  //   
+@Var: totvolume 1.0  //   
+@Var: watervolume 1.0  //   
+//********* End of the variables *******
+
+
+//********* Extra text 1 *******
+
+@class: extra_text_1(){
+
+@Calc: (1,  "watervolume = porosity * totvolume * saturation")     // is total water volume per cell
+@Calc: (1,  "gasvolume   = porosity * (1-saturation)")             // is tot gas volume per liter water
+@Calc: (1,  "SL = ((1-porosity)*density) / (porosity*saturation)")
+
+@Calc: (1,  "tolerance = watervolume* 1e-8")
+
+}
+@extra_text_1()
+//********* End of extra text 1 *******
+
+//********* The phases *******
+@phase(CEM18_CSHQ_ss)
+@phase(tot)
+@phase(kg)
+@phase(liter)
+@link_phase(liter, tot, "watervolume")
+@link_phase(liter, kg, "1/SL")
+@phase(solution)
+@link_phase(solution, liter, "1")
+@phase(diss)
+@link_phase(diss, solution, "1")
+@phase(colloid)
+@link_phase(colloid, solution, "1")
+@phase(DHA_part)
+@link_phase(DHA_part, colloid, "1")
+@phase(DFA_part)
+@link_phase(DFA_part, colloid, "1")
+@phase(solid)
+@link_phase(solid, liter, "1")
+@phase(min)
+@link_phase(min, solid, "1")
+@phase(ads)
+@link_phase(ads, solid, "1")
+@phase(CLAY_part_l)
+@link_phase(CLAY_part_l, ads, "1")
+@phase(CLAY_part)
+@link_phase(CLAY_part, CLAY_part_l, "CLAY_kgkg*SL")
+@phase(HFO_part_l)
+@link_phase(HFO_part_l, ads, "1")
+@phase(HFO_part)
+@link_phase(HFO_part, HFO_part_l, "HFO_kgkg*SL")
+@phase(Goethite_part_l)
+@link_phase(Goethite_part_l, ads, "1")
+@phase(Goethite_part)
+@link_phase(Goethite_part, Goethite_part_l, "Goethite_kgkg*SL")
+@phase(SHA_part_l)
+@link_phase(SHA_part_l, ads, "1")
+@phase(HA_part)
+@link_phase(HA_part, DHA_part, "DHA_kgl")
+@link_phase(HA_part, SHA_part_l, "SHA_kgkg*SL")
+@phase(SFA_part_l)
+@link_phase(SFA_part_l, ads, "1")
+@phase(FA_part)
+@link_phase(FA_part, DFA_part, "DFA_kgl")
+@link_phase(FA_part, SFA_part_l, "SFA_kgkg*SL")
+@phase(gas_l)
+@link_phase(gas_l, liter, "1")
+@phase(gas)
+@link_phase(gas, gas_l, "(gasvolume/22.4)")
+//********* End of the phases *******
+
+//********* Extra text 2 **************
+@class: extra_text_2(){
+   @include: objects2022.txt
+}
+@extra_text_2()
+//********* End of extra text 2 *******
+
+@globalvar: I .1
+@davies()
+
+//********* The primary entities *******
+@solid_solution(CEM18_CSHQ_ss,min)
+@primary_entity(CEM18_CSHQ_ss, 0.0)
+@gas(CO2[g])
+@primary_entity(CO2[g], -9.0, tot, 1.0E-9)
+@species(Ca+2, 2)
+@primary_entity(Ca+2, -12.0, tot, 0.1198)
+@Global: pH
+@Var: H+.logact  1 **
+@Calc:(1, "H+.logact = -pH")
+@species(H+, 1)
+@primary_entity(H+, pH, 12.0, lin, 0.1, tot, -0.2396)
+@species(H2O, 0)
+@primary_entity(H2O, 0.0)
+@species(O2, 0)
+@primary_entity(O2, -9.0)
+@species(SiO2, 0)
+@primary_entity(SiO2, -12.0, tot, 0.03146)
+//****************************************
+//******************************
+
+//********* Extra text 2a **************
+
+@class: extra_text_2a(){
+ // Here is some space for extra code that will be used in the calculations but will not be changed by the GUI. 
+}
+@extra_text_2a()
+
+//********* The entities *******
+
+@species(CH4, 0)
+@logKreaction(CH4, -151.9367, 1.0, CO2[g], 2.0, H2O, -2.0, O2)
+@species(CO2, 0)
+@logKreaction(CO2, -1.4618, 1.0, CO2[g])
+@species(CO3-2, -2)
+@logKreaction(CO3-2, -18.1429, 1.0, CO2[g], -2.0, H+, 1.0, H2O)
+@entity(CSHQ_JenD, CEM18_CSHQ_ss, 1 )
+@logKreaction(CSHQ_JenD, -28.7321, 1.0, CEM18_CSHQ_ss, 1.5, Ca+2, -3.0, H+, 4.0, H2O, 0.6667, SiO2)
+@entity(CSHQ_JenH, CEM18_CSHQ_ss, 1 )
+@logKreaction(CSHQ_JenH, -22.1808, 1.0, CEM18_CSHQ_ss, 1.3333, Ca+2, -2.6666, H+, 3.5, H2O, 1.0, SiO2)
+@entity(CSHQ_TobD, CEM18_CSHQ_ss, 1 )
+@logKreaction(CSHQ_TobD, -13.6565, 1.0, CEM18_CSHQ_ss, 0.833375, Ca+2, -1.66675, H+, 2.6668, H2O, 0.6667, SiO2)
+@entity(CSHQ_TobH, CEM18_CSHQ_ss, 1 )
+@logKreaction(CSHQ_TobH, -8.28759, 1.0, CEM18_CSHQ_ss, 0.6667, Ca+2, -1.3334, H+, 2.1667, H2O, 1.0, SiO2)
+@species(CaCO3, 0)
+@logKreaction(CaCO3, -14.91858, 1.0, CO2[g], 1.0, Ca+2, -2.0, H+, 1.0, H2O)
+@species(CaSiO3, 0)
+@logKreaction(CaSiO3, -18.54, 1.0, Ca+2, -2.0, H+, 1.0, H2O, 1.0, SiO2)
+@species(Ca[HCO3]+, 1)
+@logKreaction(Ca[HCO3]+, -6.7083, 1.0, CO2[g], 1.0, Ca+2, -1.0, H+, 1.0, H2O)
+@species(Ca[HSiO3]+, 1)
+@logKreaction(Ca[HSiO3]+, -8.60936, 1.0, Ca+2, -1.0, H+, 1.0, H2O, 1.0, SiO2)
+@species(Ca[OH]+, 1)
+@logKreaction(Ca[OH]+, -12.7802, 1.0, Ca+2, -1.0, H+, 1.0, H2O)
+@mineral(Cal)
+@logKreaction(Cal, -9.66291, 1.0, CO2[g], 1.0, Ca+2, -2.0, H+, 1.0, H2O)
+@species(H2, 0)
+@logKreaction(H2, -46.09903, 1.0, H2O, -0.5, O2)
+@species(HCO3-, -1)
+@logKreaction(HCO3-, -7.8138, 1.0, CO2[g], -1.0, H+, 1.0, H2O)
+@species(HSiO3-, -1)
+@logKreaction(HSiO3-, -9.80938, -1.0, H+, 1.0, H2O, 1.0, SiO2)
+@species(OH-, -1)
+@logKreaction(OH-, -14.0001, -1.0, H+, 1.0, H2O)
+@mineral(Portlandite)
+@logKreaction(Portlandite, -22.8002, 1.0, Ca+2, -2.0, H+, 2.0, H2O)
+@species(Si4O10-4, -4)
+@logKreaction(Si4O10-4, -36.3001, -4.0, H+, 2.0, H2O, 4.0, SiO2)
+@species(SiO3-2, -2)
+@logKreaction(SiO3-2, -23.14, -2.0, H+, 1.0, H2O, 1.0, SiO2)
+@entity(e-, diss, 0 )
+@logKreaction(e-, -21.4965, -1.0, H+, 0.5, H2O, -0.25, O2)
+//********* Extra text 3 **************
+@class: extra_text_3(){
+ // Here you can write ORCHESTRA code that will be used in the calculations, but will not be interpreted by the GUI.  
+}
+@extra_text_3()
+//********* End of extra text 3 *******
+
+//********* Extra text 4 **************
+@class: extra_text_4(){
+ // Here you can write ORCHESTRA code that will be used in the calculations, but will not be interpreted by the GUI.  
+}
+@extra_text_4()
+//********* End of extra text 4 *******
+
+//********* End of Adsorption Models *******
+//********* Extra text 5 **************
+@class: extra_text_5(){
+ // Here you can write ORCHESTRA code that will be used in the calculations, but will not be interpreted by the GUI.  
+@synonym:  anc_molkg   H+.kg
+}
+@extra_text_5()
+//********* End of extra text 5 *******
+
+//********* add @userfriendlyformat: to get output of reactions in user friendly format *******
+@class: PHREEQCOutput(){
+----------------------------Description of solution--------------------------------------------------
+                            Cellnumber = @Node_ID()
+                                    pH = @pH()
+                                    pe = @pe()
+                    Activity of water  = @evaluate:("10^@H2O.logact()")
+                       Ionic strength  = @I()
+           Total number of iterations  = @tot_nr_iter()
+
+----------------------------Distribution of aqueous species---------------------------------------------
+
+     Species            concentration (Mol/l)        Log Activity              Activity             log gamma   
+ CEM18_CSHQ_ss       @CEM18_CSHQ_ss.diss
+ CO2[g]              @CO2[g].diss()     
+     CH4                  @CH4.con()  @CH4.logact()@evaluate:("10^@CH4.logact()")    @evaluate:("-@CH4.logf()") 
+     CO2                  @CO2.con()  @CO2.logact()@evaluate:("10^@CO2.logact()")    @evaluate:("-@CO2.logf()") 
+     CO3-2                @CO3-2.con()  @CO3-2.logact()@evaluate:("10^@CO3-2.logact()")    @evaluate:("-@CO3-2.logf()") 
+     CaCO3                @CaCO3.con()  @CaCO3.logact()@evaluate:("10^@CaCO3.logact()")    @evaluate:("-@CaCO3.logf()") 
+     Ca[HCO3]+            @Ca[HCO3]+.con()  @Ca[HCO3]+.logact()@evaluate:("10^@Ca[HCO3]+.logact()")    @evaluate:("-@Ca[HCO3]+.logf()") 
+     HCO3-                @HCO3-.con()  @HCO3-.logact()@evaluate:("10^@HCO3-.logact()")    @evaluate:("-@HCO3-.logf()") 
+ Ca+2                @Ca+2.diss()       
+     Ca+2                 @Ca+2.con()  @Ca+2.logact()@evaluate:("10^@Ca+2.logact()")    @evaluate:("-@Ca+2.logf()")
+     CaCO3                @CaCO3.con()  @CaCO3.logact()@evaluate:("10^@CaCO3.logact()")    @evaluate:("-@CaCO3.logf()") 
+     CaSiO3               @CaSiO3.con()  @CaSiO3.logact()@evaluate:("10^@CaSiO3.logact()")    @evaluate:("-@CaSiO3.logf()") 
+     Ca[HCO3]+            @Ca[HCO3]+.con()  @Ca[HCO3]+.logact()@evaluate:("10^@Ca[HCO3]+.logact()")    @evaluate:("-@Ca[HCO3]+.logf()") 
+     Ca[HSiO3]+           @Ca[HSiO3]+.con()  @Ca[HSiO3]+.logact()@evaluate:("10^@Ca[HSiO3]+.logact()")    @evaluate:("-@Ca[HSiO3]+.logf()") 
+     Ca[OH]+              @Ca[OH]+.con()  @Ca[OH]+.logact()@evaluate:("10^@Ca[OH]+.logact()")    @evaluate:("-@Ca[OH]+.logf()") 
+ H+                  @H+.diss()         
+     H+                   @H+.con()  @H+.logact()@evaluate:("10^@H+.logact()")    @evaluate:("-@H+.logf()")
+     CO3-2                @CO3-2.con()  @CO3-2.logact()@evaluate:("10^@CO3-2.logact()")    @evaluate:("-@CO3-2.logf()") 
+     CaCO3                @CaCO3.con()  @CaCO3.logact()@evaluate:("10^@CaCO3.logact()")    @evaluate:("-@CaCO3.logf()") 
+     CaSiO3               @CaSiO3.con()  @CaSiO3.logact()@evaluate:("10^@CaSiO3.logact()")    @evaluate:("-@CaSiO3.logf()") 
+     Ca[HCO3]+            @Ca[HCO3]+.con()  @Ca[HCO3]+.logact()@evaluate:("10^@Ca[HCO3]+.logact()")    @evaluate:("-@Ca[HCO3]+.logf()") 
+     Ca[HSiO3]+           @Ca[HSiO3]+.con()  @Ca[HSiO3]+.logact()@evaluate:("10^@Ca[HSiO3]+.logact()")    @evaluate:("-@Ca[HSiO3]+.logf()") 
+     Ca[OH]+              @Ca[OH]+.con()  @Ca[OH]+.logact()@evaluate:("10^@Ca[OH]+.logact()")    @evaluate:("-@Ca[OH]+.logf()") 
+     HCO3-                @HCO3-.con()  @HCO3-.logact()@evaluate:("10^@HCO3-.logact()")    @evaluate:("-@HCO3-.logf()") 
+     HSiO3-               @HSiO3-.con()  @HSiO3-.logact()@evaluate:("10^@HSiO3-.logact()")    @evaluate:("-@HSiO3-.logf()") 
+     OH-                  @OH-.con()  @OH-.logact()@evaluate:("10^@OH-.logact()")    @evaluate:("-@OH-.logf()") 
+     Si4O10-4             @Si4O10-4.con()  @Si4O10-4.logact()@evaluate:("10^@Si4O10-4.logact()")    @evaluate:("-@Si4O10-4.logf()") 
+     SiO3-2               @SiO3-2.con()  @SiO3-2.logact()@evaluate:("10^@SiO3-2.logact()")    @evaluate:("-@SiO3-2.logf()") 
+     e-                   @e-.con()  @e-.logact()@evaluate:("10^@e-.logact()")    @evaluate:("-@e-.logf()") 
+ H2O                 @H2O.diss()        
+     H2O                  @H2O.con()  @H2O.logact()@evaluate:("10^@H2O.logact()")    @evaluate:("-@H2O.logf()")
+     CH4                  @CH4.con()  @CH4.logact()@evaluate:("10^@CH4.logact()")    @evaluate:("-@CH4.logf()") 
+     CO3-2                @CO3-2.con()  @CO3-2.logact()@evaluate:("10^@CO3-2.logact()")    @evaluate:("-@CO3-2.logf()") 
+     CaCO3                @CaCO3.con()  @CaCO3.logact()@evaluate:("10^@CaCO3.logact()")    @evaluate:("-@CaCO3.logf()") 
+     CaSiO3               @CaSiO3.con()  @CaSiO3.logact()@evaluate:("10^@CaSiO3.logact()")    @evaluate:("-@CaSiO3.logf()") 
+     Ca[HCO3]+            @Ca[HCO3]+.con()  @Ca[HCO3]+.logact()@evaluate:("10^@Ca[HCO3]+.logact()")    @evaluate:("-@Ca[HCO3]+.logf()") 
+     Ca[HSiO3]+           @Ca[HSiO3]+.con()  @Ca[HSiO3]+.logact()@evaluate:("10^@Ca[HSiO3]+.logact()")    @evaluate:("-@Ca[HSiO3]+.logf()") 
+     Ca[OH]+              @Ca[OH]+.con()  @Ca[OH]+.logact()@evaluate:("10^@Ca[OH]+.logact()")    @evaluate:("-@Ca[OH]+.logf()") 
+     H2                   @H2.con()  @H2.logact()@evaluate:("10^@H2.logact()")    @evaluate:("-@H2.logf()") 
+     HCO3-                @HCO3-.con()  @HCO3-.logact()@evaluate:("10^@HCO3-.logact()")    @evaluate:("-@HCO3-.logf()") 
+     HSiO3-               @HSiO3-.con()  @HSiO3-.logact()@evaluate:("10^@HSiO3-.logact()")    @evaluate:("-@HSiO3-.logf()") 
+     OH-                  @OH-.con()  @OH-.logact()@evaluate:("10^@OH-.logact()")    @evaluate:("-@OH-.logf()") 
+     Si4O10-4             @Si4O10-4.con()  @Si4O10-4.logact()@evaluate:("10^@Si4O10-4.logact()")    @evaluate:("-@Si4O10-4.logf()") 
+     SiO3-2               @SiO3-2.con()  @SiO3-2.logact()@evaluate:("10^@SiO3-2.logact()")    @evaluate:("-@SiO3-2.logf()") 
+     e-                   @e-.con()  @e-.logact()@evaluate:("10^@e-.logact()")    @evaluate:("-@e-.logf()") 
+ O2                  @O2.diss()         
+     O2                   @O2.con()  @O2.logact()@evaluate:("10^@O2.logact()")    @evaluate:("-@O2.logf()")
+     CH4                  @CH4.con()  @CH4.logact()@evaluate:("10^@CH4.logact()")    @evaluate:("-@CH4.logf()") 
+     H2                   @H2.con()  @H2.logact()@evaluate:("10^@H2.logact()")    @evaluate:("-@H2.logf()") 
+     e-                   @e-.con()  @e-.logact()@evaluate:("10^@e-.logact()")    @evaluate:("-@e-.logf()") 
+ SiO2                @SiO2.diss()       
+     SiO2                 @SiO2.con()  @SiO2.logact()@evaluate:("10^@SiO2.logact()")    @evaluate:("-@SiO2.logf()")
+     CaSiO3               @CaSiO3.con()  @CaSiO3.logact()@evaluate:("10^@CaSiO3.logact()")    @evaluate:("-@CaSiO3.logf()") 
+     Ca[HSiO3]+           @Ca[HSiO3]+.con()  @Ca[HSiO3]+.logact()@evaluate:("10^@Ca[HSiO3]+.logact()")    @evaluate:("-@Ca[HSiO3]+.logf()") 
+     HSiO3-               @HSiO3-.con()  @HSiO3-.logact()@evaluate:("10^@HSiO3-.logact()")    @evaluate:("-@HSiO3-.logf()") 
+     Si4O10-4             @Si4O10-4.con()  @Si4O10-4.logact()@evaluate:("10^@Si4O10-4.logact()")    @evaluate:("-@Si4O10-4.logf()") 
+     SiO3-2               @SiO3-2.con()  @SiO3-2.logact()@evaluate:("10^@SiO3-2.logact()")    @evaluate:("-@SiO3-2.logf()") 
+
+----------------------------Description  of mineral phases --------------------------------------------------
+     Mineral           concentration (Mol/l)           SI  
+ CEM18_CSHQ_ss       @CEM18_CSHQ_ss.min()    
+ CO2[g]              @CO2[g].min()           
+     Cal                  @Cal.con()  @evaluate:("if(@Cal.logact()^2>1e-20,@Cal.logact(),0) ") 
+ Ca+2                @Ca+2.min()             
+     Cal                  @Cal.con()  @evaluate:("if(@Cal.logact()^2>1e-20,@Cal.logact(),0) ") 
+     Portlandite          @Portlandite.con()  @evaluate:("if(@Portlandite.logact()^2>1e-20,@Portlandite.logact(),0) ") 
+ H+                  @H+.min()               
+     Cal                  @Cal.con()  @evaluate:("if(@Cal.logact()^2>1e-20,@Cal.logact(),0) ") 
+     Portlandite          @Portlandite.con()  @evaluate:("if(@Portlandite.logact()^2>1e-20,@Portlandite.logact(),0) ") 
+ H2O                 @H2O.min()              
+     Cal                  @Cal.con()  @evaluate:("if(@Cal.logact()^2>1e-20,@Cal.logact(),0) ") 
+     Portlandite          @Portlandite.con()  @evaluate:("if(@Portlandite.logact()^2>1e-20,@Portlandite.logact(),0) ") 
+ O2                  @O2.min()               
+ SiO2                @SiO2.min()             
+
+---------------------------- Description of CEM18_CNASH_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_CNA
+ CO2[g]                   @CO2[g].CEM18_CNASH_ss()
+ Ca+2                     @Ca+2.CEM18_CNASH_ss()  
+ H+                       @H+.CEM18_CNASH_ss()    
+ H2O                      @H2O.CEM18_CNASH_ss()   
+ O2                       @O2.CEM18_CNASH_ss()    
+ SiO2                     @SiO2.CEM18_CNASH_ss()  
+
+---------------------------- Description of CEM18_CSH3T_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_CSH
+ CO2[g]                   @CO2[g].CEM18_CSH3T_ss()
+ Ca+2                     @Ca+2.CEM18_CSH3T_ss()  
+ H+                       @H+.CEM18_CSH3T_ss()    
+ H2O                      @H2O.CEM18_CSH3T_ss()   
+ O2                       @O2.CEM18_CSH3T_ss()    
+ SiO2                     @SiO2.CEM18_CSH3T_ss()  
+
+---------------------------- Description of CEM18_CSHQ_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_CSH
+     CSHQ_JenD                 @CSHQ_JenD.con()  @CSHQ_JenD.logact()@evaluate:("10^@CSHQ_JenD.logact()") 
+     CSHQ_JenH                 @CSHQ_JenH.con()  @CSHQ_JenH.logact()@evaluate:("10^@CSHQ_JenH.logact()") 
+     CSHQ_TobD                 @CSHQ_TobD.con()  @CSHQ_TobD.logact()@evaluate:("10^@CSHQ_TobD.logact()") 
+     CSHQ_TobH                 @CSHQ_TobH.con()  @CSHQ_TobH.logact()@evaluate:("10^@CSHQ_TobH.logact()") 
+ CO2[g]                   @CO2[g].CEM18_CSHQ_ss() 
+ Ca+2                     @Ca+2.CEM18_CSHQ_ss()   
+     CSHQ_JenD                 @CSHQ_JenD.con()  @CSHQ_JenD.logact()@evaluate:("10^@CSHQ_JenD.logact()") 
+     CSHQ_JenH                 @CSHQ_JenH.con()  @CSHQ_JenH.logact()@evaluate:("10^@CSHQ_JenH.logact()") 
+     CSHQ_TobD                 @CSHQ_TobD.con()  @CSHQ_TobD.logact()@evaluate:("10^@CSHQ_TobD.logact()") 
+     CSHQ_TobH                 @CSHQ_TobH.con()  @CSHQ_TobH.logact()@evaluate:("10^@CSHQ_TobH.logact()") 
+ H+                       @H+.CEM18_CSHQ_ss()     
+     CSHQ_JenD                 @CSHQ_JenD.con()  @CSHQ_JenD.logact()@evaluate:("10^@CSHQ_JenD.logact()") 
+     CSHQ_JenH                 @CSHQ_JenH.con()  @CSHQ_JenH.logact()@evaluate:("10^@CSHQ_JenH.logact()") 
+     CSHQ_TobD                 @CSHQ_TobD.con()  @CSHQ_TobD.logact()@evaluate:("10^@CSHQ_TobD.logact()") 
+     CSHQ_TobH                 @CSHQ_TobH.con()  @CSHQ_TobH.logact()@evaluate:("10^@CSHQ_TobH.logact()") 
+ H2O                      @H2O.CEM18_CSHQ_ss()    
+     CSHQ_JenD                 @CSHQ_JenD.con()  @CSHQ_JenD.logact()@evaluate:("10^@CSHQ_JenD.logact()") 
+     CSHQ_JenH                 @CSHQ_JenH.con()  @CSHQ_JenH.logact()@evaluate:("10^@CSHQ_JenH.logact()") 
+     CSHQ_TobD                 @CSHQ_TobD.con()  @CSHQ_TobD.logact()@evaluate:("10^@CSHQ_TobD.logact()") 
+     CSHQ_TobH                 @CSHQ_TobH.con()  @CSHQ_TobH.logact()@evaluate:("10^@CSHQ_TobH.logact()") 
+ O2                       @O2.CEM18_CSHQ_ss()     
+ SiO2                     @SiO2.CEM18_CSHQ_ss()   
+     CSHQ_JenD                 @CSHQ_JenD.con()  @CSHQ_JenD.logact()@evaluate:("10^@CSHQ_JenD.logact()") 
+     CSHQ_JenH                 @CSHQ_JenH.con()  @CSHQ_JenH.logact()@evaluate:("10^@CSHQ_JenH.logact()") 
+     CSHQ_TobD                 @CSHQ_TobD.con()  @CSHQ_TobD.logact()@evaluate:("10^@CSHQ_TobD.logact()") 
+     CSHQ_TobH                 @CSHQ_TobH.con()  @CSHQ_TobH.logact()@evaluate:("10^@CSHQ_TobH.logact()") 
+
+---------------------------- Description of CEM18_CSH_II_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_CSH
+ CO2[g]                   @CO2[g].CEM18_CSH_II_ss(
+ Ca+2                     @Ca+2.CEM18_CSH_II_ss() 
+ H+                       @H+.CEM18_CSH_II_ss()   
+ H2O                      @H2O.CEM18_CSH_II_ss()  
+ O2                       @O2.CEM18_CSH_II_ss()   
+ SiO2                     @SiO2.CEM18_CSH_II_ss() 
+
+---------------------------- Description of CEM18_ECSH1_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_ECS
+ CO2[g]                   @CO2[g].CEM18_ECSH1_ss()
+ Ca+2                     @Ca+2.CEM18_ECSH1_ss()  
+ H+                       @H+.CEM18_ECSH1_ss()    
+ H2O                      @H2O.CEM18_ECSH1_ss()   
+ O2                       @O2.CEM18_ECSH1_ss()    
+ SiO2                     @SiO2.CEM18_ECSH1_ss()  
+
+---------------------------- Description of CEM18_ECSH2_ss phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CEM18_ECS
+ CO2[g]                   @CO2[g].CEM18_ECSH2_ss()
+ Ca+2                     @Ca+2.CEM18_ECSH2_ss()  
+ H+                       @H+.CEM18_ECSH2_ss()    
+ H2O                      @H2O.CEM18_ECSH2_ss()   
+ O2                       @O2.CEM18_ECSH2_ss()    
+ SiO2                     @SiO2.CEM18_ECSH2_ss()  
+
+---------------------------- Description of CLAY_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CLAY_part
+ CO2[g]                   @CO2[g].CLAY_part()     
+ Ca+2                     @Ca+2.CLAY_part()       
+ H+                       @H+.CLAY_part()         
+ H2O                      @H2O.CLAY_part()        
+ O2                       @O2.CLAY_part()         
+ SiO2                     @SiO2.CLAY_part()       
+
+---------------------------- Description of CLAY_part_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.CLAY_part
+ CO2[g]                   @CO2[g].CLAY_part_l()   
+ Ca+2                     @Ca+2.CLAY_part_l()     
+ H+                       @H+.CLAY_part_l()       
+ H2O                      @H2O.CLAY_part_l()      
+ O2                       @O2.CLAY_part_l()       
+ SiO2                     @SiO2.CLAY_part_l()     
+
+---------------------------- Description of DFA_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.DFA_part(
+ CO2[g]                   @CO2[g].DFA_part()      
+ Ca+2                     @Ca+2.DFA_part()        
+ H+                       @H+.DFA_part()          
+ H2O                      @H2O.DFA_part()         
+ O2                       @O2.DFA_part()          
+ SiO2                     @SiO2.DFA_part()        
+
+---------------------------- Description of DHA_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.DHA_part(
+ CO2[g]                   @CO2[g].DHA_part()      
+ Ca+2                     @Ca+2.DHA_part()        
+ H+                       @H+.DHA_part()          
+ H2O                      @H2O.DHA_part()         
+ O2                       @O2.DHA_part()          
+ SiO2                     @SiO2.DHA_part()        
+
+---------------------------- Description of FA_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.FA_part()
+ CO2[g]                   @CO2[g].FA_part()       
+ Ca+2                     @Ca+2.FA_part()         
+ H+                       @H+.FA_part()           
+ H2O                      @H2O.FA_part()          
+ O2                       @O2.FA_part()           
+ SiO2                     @SiO2.FA_part()         
+
+---------------------------- Description of Goethite_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.Goethite_
+ CO2[g]                   @CO2[g].Goethite_part() 
+ Ca+2                     @Ca+2.Goethite_part()   
+ H+                       @H+.Goethite_part()     
+ H2O                      @H2O.Goethite_part()    
+ O2                       @O2.Goethite_part()     
+ SiO2                     @SiO2.Goethite_part()   
+
+---------------------------- Description of Goethite_part_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.Goethite_
+ CO2[g]                   @CO2[g].Goethite_part_l(
+ Ca+2                     @Ca+2.Goethite_part_l() 
+ H+                       @H+.Goethite_part_l()   
+ H2O                      @H2O.Goethite_part_l()  
+ O2                       @O2.Goethite_part_l()   
+ SiO2                     @SiO2.Goethite_part_l() 
+
+---------------------------- Description of HA_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.HA_part()
+ CO2[g]                   @CO2[g].HA_part()       
+ Ca+2                     @Ca+2.HA_part()         
+ H+                       @H+.HA_part()           
+ H2O                      @H2O.HA_part()          
+ O2                       @O2.HA_part()           
+ SiO2                     @SiO2.HA_part()         
+
+---------------------------- Description of HFO_part phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.HFO_part(
+ CO2[g]                   @CO2[g].HFO_part()      
+ Ca+2                     @Ca+2.HFO_part()        
+ H+                       @H+.HFO_part()          
+ H2O                      @H2O.HFO_part()         
+ O2                       @O2.HFO_part()          
+ SiO2                     @SiO2.HFO_part()        
+
+---------------------------- Description of HFO_part_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.HFO_part_
+ CO2[g]                   @CO2[g].HFO_part_l()    
+ Ca+2                     @Ca+2.HFO_part_l()      
+ H+                       @H+.HFO_part_l()        
+ H2O                      @H2O.HFO_part_l()       
+ O2                       @O2.HFO_part_l()        
+ SiO2                     @SiO2.HFO_part_l()      
+
+---------------------------- Description of SFA_part_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.SFA_part_
+ CO2[g]                   @CO2[g].SFA_part_l()    
+ Ca+2                     @Ca+2.SFA_part_l()      
+ H+                       @H+.SFA_part_l()        
+ H2O                      @H2O.SFA_part_l()       
+ O2                       @O2.SFA_part_l()        
+ SiO2                     @SiO2.SFA_part_l()      
+
+---------------------------- Description of SHA_part_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.SHA_part_
+ CO2[g]                   @CO2[g].SHA_part_l()    
+ Ca+2                     @Ca+2.SHA_part_l()      
+ H+                       @H+.SHA_part_l()        
+ H2O                      @H2O.SHA_part_l()       
+ O2                       @O2.SHA_part_l()        
+ SiO2                     @SiO2.SHA_part_l()      
+
+---------------------------- Description of ads phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.ads()    
+ CO2[g]                   @CO2[g].ads()           
+ Ca+2                     @Ca+2.ads()             
+ H+                       @H+.ads()               
+ H2O                      @H2O.ads()              
+ O2                       @O2.ads()               
+ SiO2                     @SiO2.ads()             
+
+---------------------------- Description of colloid phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.colloid()
+ CO2[g]                   @CO2[g].colloid()       
+ Ca+2                     @Ca+2.colloid()         
+ H+                       @H+.colloid()           
+ H2O                      @H2O.colloid()          
+ O2                       @O2.colloid()           
+ SiO2                     @SiO2.colloid()         
+
+---------------------------- Description of gas phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.gas()    
+ CO2[g]                   @CO2[g].gas()           
+ Ca+2                     @Ca+2.gas()             
+ H+                       @H+.gas()               
+ H2O                      @H2O.gas()              
+ O2                       @O2.gas()               
+ SiO2                     @SiO2.gas()             
+
+---------------------------- Description of gas_l phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.gas_l()  
+ CO2[g]                   @CO2[g].gas_l()         
+ Ca+2                     @Ca+2.gas_l()           
+ H+                       @H+.gas_l()             
+ H2O                      @H2O.gas_l()            
+ O2                       @O2.gas_l()             
+ SiO2                     @SiO2.gas_l()           
+
+---------------------------- Description of kg phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.kg()     
+ CO2[g]                   @CO2[g].kg()            
+ Ca+2                     @Ca+2.kg()              
+ H+                       @H+.kg()                
+ H2O                      @H2O.kg()               
+ O2                       @O2.kg()                
+ SiO2                     @SiO2.kg()              
+
+---------------------------- Description of liter phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.liter()  
+ CO2[g]                   @CO2[g].liter()         
+ Ca+2                     @Ca+2.liter()           
+ H+                       @H+.liter()             
+ H2O                      @H2O.liter()            
+ O2                       @O2.liter()             
+ SiO2                     @SiO2.liter()           
+
+---------------------------- Description of solid phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.solid()  
+ CO2[g]                   @CO2[g].solid()         
+ Ca+2                     @Ca+2.solid()           
+ H+                       @H+.solid()             
+ H2O                      @H2O.solid()            
+ O2                       @O2.solid()             
+ SiO2                     @SiO2.solid()           
+
+---------------------------- Description of solution phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.solution(
+ CO2[g]                   @CO2[g].solution()      
+ Ca+2                     @Ca+2.solution()        
+ H+                       @H+.solution()          
+ H2O                      @H2O.solution()         
+ O2                       @O2.solution()          
+ SiO2                     @SiO2.solution()        
+
+---------------------------- Description of temporary phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.temporary
+ CO2[g]                   @CO2[g].temporary()     
+ Ca+2                     @Ca+2.temporary()       
+ H+                       @H+.temporary()         
+ H2O                      @H2O.temporary()        
+ O2                       @O2.temporary()         
+ SiO2                     @SiO2.temporary()       
+
+---------------------------- Description of tot phase --------------------------------------------------
+ CEM18_CSHQ_ss            @CEM18_CSHQ_ss.tot()    
+ CO2[g]                   @CO2[g].tot()           
+ Ca+2                     @Ca+2.tot()             
+ H+                       @H+.tot()               
+ H2O                      @H2O.tot()              
+ O2                       @O2.tot()               
+ SiO2                     @SiO2.tot()             
+}
+@class: outputline(){Var: Node_ID pH pe I H2O.logact tot_nr_iter CEM18_CSHQ_ss.diss CO2[g].diss CH4.con CH4.logact CH4.logf CO2.con CO2.logact CO2.logf CO3-2.con CO3-2.logact CO3-2.logf CaCO3.con CaCO3.logact CaCO3.logf Ca[HCO3]+.con Ca[HCO3]+.logact Ca[HCO3]+.logf HCO3-.con HCO3-.logact HCO3-.logf Ca+2.diss Ca+2.con Ca+2.logact Ca+2.logf CaCO3.con CaCO3.logact CaCO3.logf CaSiO3.con CaSiO3.logact CaSiO3.logf Ca[HCO3]+.con Ca[HCO3]+.logact Ca[HCO3]+.logf Ca[HSiO3]+.con Ca[HSiO3]+.logact Ca[HSiO3]+.logf Ca[OH]+.con Ca[OH]+.logact Ca[OH]+.logf H+.diss H+.con H+.logact H+.logf CO3-2.con CO3-2.logact CO3-2.logf CaCO3.con CaCO3.logact CaCO3.logf CaSiO3.con CaSiO3.logact CaSiO3.logf Ca[HCO3]+.con Ca[HCO3]+.logact Ca[HCO3]+.logf Ca[HSiO3]+.con Ca[HSiO3]+.logact Ca[HSiO3]+.logf Ca[OH]+.con Ca[OH]+.logact Ca[OH]+.logf HCO3-.con HCO3-.logact HCO3-.logf HSiO3-.con HSiO3-.logact HSiO3-.logf OH-.con OH-.logact OH-.logf Si4O10-4.con Si4O10-4.logact Si4O10-4.logf SiO3-2.con SiO3-2.logact SiO3-2.logf e-.con e-.logact e-.logf H2O.diss H2O.con H2O.logact H2O.logf CH4.con CH4.logact CH4.logf CO3-2.con CO3-2.logact CO3-2.logf CaCO3.con CaCO3.logact CaCO3.logf CaSiO3.con CaSiO3.logact CaSiO3.logf Ca[HCO3]+.con Ca[HCO3]+.logact Ca[HCO3]+.logf Ca[HSiO3]+.con Ca[HSiO3]+.logact Ca[HSiO3]+.logf Ca[OH]+.con Ca[OH]+.logact Ca[OH]+.logf H2.con H2.logact H2.logf HCO3-.con HCO3-.logact HCO3-.logf HSiO3-.con HSiO3-.logact HSiO3-.logf OH-.con OH-.logact OH-.logf Si4O10-4.con Si4O10-4.logact Si4O10-4.logf SiO3-2.con SiO3-2.logact SiO3-2.logf e-.con e-.logact e-.logf O2.diss O2.con O2.logact O2.logf CH4.con CH4.logact CH4.logf H2.con H2.logact H2.logf e-.con e-.logact e-.logf SiO2.diss SiO2.con SiO2.logact SiO2.logf CaSiO3.con CaSiO3.logact CaSiO3.logf Ca[HSiO3]+.con Ca[HSiO3]+.logact Ca[HSiO3]+.logf HSiO3-.con HSiO3-.logact HSiO3-.logf Si4O10-4.con Si4O10-4.logact Si4O10-4.logf SiO3-2.con SiO3-2.logact SiO3-2.logf CEM18_CSHQ_ss.min CO2[g].min Cal.con Cal.si Cal.logact Ca+2.min Cal.con Cal.si Cal.logact Portlandite.con Portlandite.si Portlandite.logact H+.min Cal.con Cal.si Cal.logact Portlandite.con Portlandite.si Portlandite.logact H2O.min Cal.con Cal.si Cal.logact Portlandite.con Portlandite.si Portlandite.logact O2.min SiO2.min CEM18_CSHQ_ss.CEM18_CNASH_ss CO2[g].CEM18_CNASH_ss Ca+2.CEM18_CNASH_ss H+.CEM18_CNASH_ss H2O.CEM18_CNASH_ss O2.CEM18_CNASH_ss SiO2.CEM18_CNASH_ss CEM18_CSHQ_ss.CEM18_CSH3T_ss CO2[g].CEM18_CSH3T_ss Ca+2.CEM18_CSH3T_ss H+.CEM18_CSH3T_ss H2O.CEM18_CSH3T_ss O2.CEM18_CSH3T_ss SiO2.CEM18_CSH3T_ss CEM18_CSHQ_ss.CEM18_CSHQ_ss CSHQ_JenD.con CSHQ_JenD.logact CSHQ_JenH.con CSHQ_JenH.logact CSHQ_TobD.con CSHQ_TobD.logact CSHQ_TobH.con CSHQ_TobH.logact CO2[g].CEM18_CSHQ_ss Ca+2.CEM18_CSHQ_ss CSHQ_JenD.con CSHQ_JenD.logact CSHQ_JenH.con CSHQ_JenH.logact CSHQ_TobD.con CSHQ_TobD.logact CSHQ_TobH.con CSHQ_TobH.logact H+.CEM18_CSHQ_ss CSHQ_JenD.con CSHQ_JenD.logact CSHQ_JenH.con CSHQ_JenH.logact CSHQ_TobD.con CSHQ_TobD.logact CSHQ_TobH.con CSHQ_TobH.logact H2O.CEM18_CSHQ_ss CSHQ_JenD.con CSHQ_JenD.logact CSHQ_JenH.con CSHQ_JenH.logact CSHQ_TobD.con CSHQ_TobD.logact CSHQ_TobH.con CSHQ_TobH.logact O2.CEM18_CSHQ_ss SiO2.CEM18_CSHQ_ss CSHQ_JenD.con CSHQ_JenD.logact CSHQ_JenH.con CSHQ_JenH.logact CSHQ_TobD.con CSHQ_TobD.logact CSHQ_TobH.con CSHQ_TobH.logact CEM18_CSHQ_ss.CEM18_CSH_II_ss CO2[g].CEM18_CSH_II_ss Ca+2.CEM18_CSH_II_ss H+.CEM18_CSH_II_ss H2O.CEM18_CSH_II_ss O2.CEM18_CSH_II_ss SiO2.CEM18_CSH_II_ss CEM18_CSHQ_ss.CEM18_ECSH1_ss CO2[g].CEM18_ECSH1_ss Ca+2.CEM18_ECSH1_ss H+.CEM18_ECSH1_ss H2O.CEM18_ECSH1_ss O2.CEM18_ECSH1_ss SiO2.CEM18_ECSH1_ss CEM18_CSHQ_ss.CEM18_ECSH2_ss CO2[g].CEM18_ECSH2_ss Ca+2.CEM18_ECSH2_ss H+.CEM18_ECSH2_ss H2O.CEM18_ECSH2_ss O2.CEM18_ECSH2_ss SiO2.CEM18_ECSH2_ss CEM18_CSHQ_ss.CLAY_part CO2[g].CLAY_part Ca+2.CLAY_part H+.CLAY_part H2O.CLAY_part O2.CLAY_part SiO2.CLAY_part CEM18_CSHQ_ss.CLAY_part_l CO2[g].CLAY_part_l Ca+2.CLAY_part_l H+.CLAY_part_l H2O.CLAY_part_l O2.CLAY_part_l SiO2.CLAY_part_l CEM18_CSHQ_ss.DFA_part CO2[g].DFA_part Ca+2.DFA_part H+.DFA_part H2O.DFA_part O2.DFA_part SiO2.DFA_part CEM18_CSHQ_ss.DHA_part CO2[g].DHA_part Ca+2.DHA_part H+.DHA_part H2O.DHA_part O2.DHA_part SiO2.DHA_part CEM18_CSHQ_ss.FA_part CO2[g].FA_part Ca+2.FA_part H+.FA_part H2O.FA_part O2.FA_part SiO2.FA_part CEM18_CSHQ_ss.Goethite_part CO2[g].Goethite_part Ca+2.Goethite_part H+.Goethite_part H2O.Goethite_part O2.Goethite_part SiO2.Goethite_part CEM18_CSHQ_ss.Goethite_part_l CO2[g].Goethite_part_l Ca+2.Goethite_part_l H+.Goethite_part_l H2O.Goethite_part_l O2.Goethite_part_l SiO2.Goethite_part_l CEM18_CSHQ_ss.HA_part CO2[g].HA_part Ca+2.HA_part H+.HA_part H2O.HA_part O2.HA_part SiO2.HA_part CEM18_CSHQ_ss.HFO_part CO2[g].HFO_part Ca+2.HFO_part H+.HFO_part H2O.HFO_part O2.HFO_part SiO2.HFO_part CEM18_CSHQ_ss.HFO_part_l CO2[g].HFO_part_l Ca+2.HFO_part_l H+.HFO_part_l H2O.HFO_part_l O2.HFO_part_l SiO2.HFO_part_l CEM18_CSHQ_ss.SFA_part_l CO2[g].SFA_part_l Ca+2.SFA_part_l H+.SFA_part_l H2O.SFA_part_l O2.SFA_part_l SiO2.SFA_part_l CEM18_CSHQ_ss.SHA_part_l CO2[g].SHA_part_l Ca+2.SHA_part_l H+.SHA_part_l H2O.SHA_part_l O2.SHA_part_l SiO2.SHA_part_l CEM18_CSHQ_ss.ads CO2[g].ads Ca+2.ads H+.ads H2O.ads O2.ads SiO2.ads CEM18_CSHQ_ss.colloid CO2[g].colloid Ca+2.colloid H+.colloid H2O.colloid O2.colloid SiO2.colloid CEM18_CSHQ_ss.gas CO2[g].gas Ca+2.gas H+.gas H2O.gas O2.gas SiO2.gas CEM18_CSHQ_ss.gas_l CO2[g].gas_l Ca+2.gas_l H+.gas_l H2O.gas_l O2.gas_l SiO2.gas_l CEM18_CSHQ_ss.kg CO2[g].kg Ca+2.kg H+.kg H2O.kg O2.kg SiO2.kg CEM18_CSHQ_ss.liter CO2[g].liter Ca+2.liter H+.liter H2O.liter O2.liter SiO2.liter CEM18_CSHQ_ss.solid CO2[g].solid Ca+2.solid H+.solid H2O.solid O2.solid SiO2.solid CEM18_CSHQ_ss.solution CO2[g].solution Ca+2.solution H+.solution H2O.solution O2.solution SiO2.solution CEM18_CSHQ_ss.temporary CO2[g].temporary Ca+2.temporary H+.temporary H2O.temporary O2.temporary SiO2.temporary CEM18_CSHQ_ss.tot CO2[g].tot Ca+2.tot H+.tot H2O.tot O2.tot SiO2.tot }

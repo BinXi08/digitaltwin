@@ -1,0 +1,41 @@
+@include: parameters.txt
+
+@Class: water_flow()
+This object contains the general part of convection and defines the 
+amount of water transported between cell 1 and cell 2.
+It should be used in convection.inp before the component specific objects.
+{  @Var: dwater  0    
+   @Var: 1.J     0
+    
+   //The amount of water moving from cell 1 to cell 2 equals the 
+   //flow rate (l/s). 
+   @Calc:(1, "dwater = 1.J")
+}
+
+@Class: advec (name) 
+This object contains the component specific part of convection and defines the 
+amount of component (mol/s) transported between cell 1 and cell 2.
+{  @globalvar: 1.<name>.solution 0
+   @globalvar: 2.<name>.solution 0
+   @Var: 1.<name>.d 0
+   @Var: 2.<name>.d 0
+   @Var: dmass 0 
+
+   //Calculate the transported mass between cell 1 and cell 2 
+   //depending on the direction of the flow
+   @Calc:(1, "dmass = dwater * if (dwater>0 , {1.<name>.solution}, {2.<name>.solution})")
+   @Calc:(1,"1.<name>.d = {1.<name>.d} - dmass")
+   @Calc:(1,"2.<name>.d = {2.<name>.d} + dmass")
+}
+
+@class: component(name){
+   @advec(<name>)
+}
+
+@water_flow()
+
+@include: chemistry1_components.inp
+
+
+
+
