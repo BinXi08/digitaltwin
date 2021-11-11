@@ -166,7 +166,7 @@
       <DoTask Name="Calculate gasdiffusion" />
       <DoTask Name="Calculate diffusion" />
       <DoTask Name="Clock_update" />
-      <DoTask Name="View" />
+//      <DoTask Name="View" />
    </Task>
 
 
